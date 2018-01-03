@@ -3,39 +3,46 @@ include Coinche;
 include Deck;
 include List;
 
-describe("Coinche", () => {
+describe("Bid", () => {
   open ExpectJs;
   open Coinche.Bid;
 
-  let isValidBid = validBid(~lastBid=Some(Bid(North, 80, Deck.Spades)));
+  let isValidBid = validBid([Bid(North, 80, Deck.Spades)]);
+  let multiEqTrue = lst => {
+    lst |> List.fold_left((&&), true) |> expect |> toEqual(true)
+  };
+  let multiEqFalse = lst => {
+    lst |> List.fold_left((||), false) |> expect |> toEqual(false)
+  };
 
-  test("Pass is always valid", () => {
-    expect(validBid(~lastBid=Some(Pass(North)), ~bid=Pass(East))) |> toEqual(true)
+  test("Pass is valid when next", () => {
+    Pass(East) |> validBid([Pass(North)]) |> expect |> toEqual(true);
   });
-  test("A valid bid", () => {
-    expect(List.fold_left((&&), true, [
-      validBid(~lastBid=None, ~bid=Bid(East, 80, Deck.Spades)),
-      validBid(~lastBid=None, ~bid=Bid(East, 100, Deck.Spades)),
-      isValidBid(~bid=Pass(East)),
-      isValidBid(~bid=Bid(East, 90, Deck.Spades)),
-      isValidBid(~bid=Bid(East, 100, Deck.Spades)),
-      isValidBid(~bid=Bid(East, 160, Deck.Spades)),
-      isValidBid(~bid=Bid(East, 250, Deck.Spades)),
-      isValidBid(~bid=Bid(East, 400, Deck.Spades)),
-    ])) |> toEqual(true)
+  test("Pass is invalid when not next", () => {
+    Pass(South) |> validBid([Pass(North)]) |> expect |> toEqual(true);
+  });
+  test("A valid bid specials", () => {
+    [
+      Bid(East, 80, Deck.Spades) |> validBid([]),
+      Bid(East, 100, Deck.Spades) |> validBid([]),
+      Pass(East) |> isValidBid,
+    ] |> multiEqTrue;
+  });
+  test("A valid bid values", () => {
+    [90, 100, 160, 250, 400] 
+      |> List.map(v => Bid(East, v, Deck.Spades)) 
+      |> List.map(isValidBid) 
+      |> multiEqTrue;
   });
   test("An invalid bid", () => {
-    expect(List.fold_left((||), false, [
-      isValidBid(~bid=Bid(East, 70, Deck.Spades)),
-      isValidBid(~bid=Bid(East, 91, Deck.Spades)),
-      isValidBid(~bid=Bid(East, 170, Deck.Spades)),
-      isValidBid(~bid=Bid(East, 260, Deck.Spades)),
-      isValidBid(~bid=Bid(East, 800, Deck.Spades)),
-    ])) |> toEqual(false)
+    [70, 91, 170, 260, 800] 
+      |> List.map(v => Bid(East, v, Deck.Spades)) 
+      |> List.map(isValidBid) 
+      |> multiEqFalse;
   });
 });
 
-
+/*
 describe("Game", () => {
   open ExpectJs;
 
@@ -47,7 +54,6 @@ describe("Game", () => {
       | Failure(_) => expect(-1)
     } |> toEqual(1)
   });
-
   test("We can make multiple bids", () => {
     let res = Coinche.initialState() 
     |> (state) => Coinche.applyAction(~action=MakeBid(Bid(East, 80, Deck.Diamonds)), ~state)
@@ -60,4 +66,4 @@ describe("Game", () => {
       | Failure(_) => expect(-1)
     } |> toEqual(1)
   });
-});
+});*/

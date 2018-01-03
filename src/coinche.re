@@ -1,12 +1,7 @@
 include Deck;
 
 module Coinche {
-
-    type req('a, 'b) = Success('a) | Failure('b);
-    let bind = (next, input) => switch input {
-        | Success(s) => next(s)
-        | Failure(f) => Failure(f)
-    };
+    open Util;
 
     type player = North | East | South | West;
     type team = NorthSouth | EastWest;
@@ -22,26 +17,32 @@ module Coinche {
     module Bid {
         type bid = Bid(player, int, Deck.color) | Pass(player);
 
-        let validBid = (~lastBid: option(bid), ~bid: bid): bool => {
+        let filterNotPass = List.filter(bid => switch bid {
+            | Bid(_) => true
+            | _ => false
+        });
+
+        let validBid = (lastBids: list(bid), bid: bid): bool => {
             let validValue = v => 
                 v mod 10 === 0 
                 && v >= 80 
                 && (v <= 160 || v === 250 || v === 400);
 
-            switch (lastBid, bid) {
-                | (Some(Bid(prevP, _, _)), Pass(p)) => nextPlayer(prevP) === p
-                | (None, Pass(p)) => true
-                | (Some(Bid(prevP, prev, _)), Bid(p, v, _)) => validValue(v) && v > prev && nextPlayer(prevP) === p
-                | (None, Bid(p, v, _)) => validValue(v)
-                | _ => false
-            };
+            let bidCount = lastBids |> filterNotPass |> List.length;
+            if (bidCount === 0) {
+                switch bid {
+                    | Bid(_, v, _) => validValue(v)
+                    | Pass(_) => true
+                };
+            } else {
+                let lastBid = lastBids |> filterNotPass |> Util.listLast;
+                switch (lastBid, bid) {
+                    | (Some(Bid(prevP, _, _) | Pass(prevP)), Pass(p)) => nextPlayer(prevP) === p
+                    | (Some(Bid(prevP, prev, _)), Bid(p, v, _)) => validValue(v) && v > prev && nextPlayer(prevP) === p
+                    | _ => false
+                };
+            }
         };
-
-        let lastBid = (bids: list(bid)): option(bid) => {
-            List.length(bids) === 0 
-                ? None
-                : Some(List.nth(bids, List.length(bids)))
-        }
     };
 
 
@@ -77,13 +78,21 @@ module Coinche {
         };
     };
 
+
+    type request('a, 'b) = Success('a) | Failure('b);
+    let bindReducer = (reducer) => ((action, state)) => switch state {
+        | Success(state) => Success((action, reducer(action, state)))
+        | Failure(m) => Failure(m)
+    };
+
     type action = MakeBid(Bid.bid);
     type error = InvalidBid(Bid.bid);
 
-    let reducer = (~state: state, ~action: action) => {
+    let reducer = (action: action, state: state) => {
+        let validBid = state.bids |> Bid.validBid;
         switch action {
             | MakeBid(b) => {
-                Bid.validBid(~lastBid=Bid.lastBid(state.bids), ~bid=b)
+                validBid(b)
                     ? Success({...state, bids: state.bids @ [b]})
                     : Failure(InvalidBid(b))
             }
@@ -91,7 +100,7 @@ module Coinche {
     };
 
     let applyAction = (res) => switch res {
-        | Success((state, action)) => Success((reducer(~state=state, ~action=action), action))
+        | Success((state, action)) => Success((reducer(action, state), action))
         | Failure(m) => Failure(m)
     };
 }

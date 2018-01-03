@@ -6,9 +6,9 @@ describe("Deck", () => {
   open ExpectJs;
 
   test("creates a new deck", () => {
-    expect(List.length(Deck.newDeck())) |> toEqual(32);
+    Deck.newDeck() |> List.length |> expect |> toEqual(32);
   });
   test("creates a new deck with cards", () => {
-    expect(List.nth(Deck.newDeck(), 0)) |> toEqual(Deck.{motif: Deck.King, color: Deck.Spades});
+    Deck.newDeck() |> List.hd |> expect |> toEqual(Deck.{motif: Deck.King, color: Deck.Spades});
   });
 });
