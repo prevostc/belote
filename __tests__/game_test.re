@@ -1,11 +1,11 @@
 open Jest;
-include Coinche;
+include Game;
 include Deck;
 include List;
 
 describe("Bid", () => {
   open ExpectJs;
-  open Coinche.Bid;
+  open Game.Bid;
 
   let isValidBid = validBid([Bid(North, 80, Deck.Spades)]);
   let multiEqTrue = lst => {
@@ -42,28 +42,25 @@ describe("Bid", () => {
   });
 });
 
-/*
 describe("Game", () => {
   open ExpectJs;
+  open Game;
+  open Game.Bid;
+
+  let mkBid = (p, v) => dispatch(MakeBid(Bid(p, v, Deck.Diamonds)));
 
   test("We can make a bid", () => {
-    let res = Coinche.applyAction((Coinche.initialState(), MakeBid(Bid(East, 80, Deck.Diamonds))));
-    
-    switch(res) {
-      | Success((s, _)) => expect(List.length(s.bids))
-      | Failure(_) => expect(-1)
-    } |> toEqual(1)
+    let state = initialState() |> mkBid(East, 80);
+    state.bids |> List.length |> expect |> toEqual(1);
   });
+
   test("We can make multiple bids", () => {
-    let res = Coinche.initialState() 
-    |> (state) => Coinche.applyAction(~action=MakeBid(Bid(East, 80, Deck.Diamonds)), ~state)
-    |> (state) => Coinche.applyAction(~action=MakeBid(Bid(East, 80, Deck.Diamonds)), ~state)
-    |> (state) => Coinche.applyAction(~action=MakeBid(Bid(East, 80, Deck.Diamonds)), ~state)
-    ;
-    
-    switch(res) {
-      | Success(s) => expect(List.length(s.bids))
-      | Failure(_) => expect(-1)
-    } |> toEqual(1)
+    let state = initialState() 
+      |> mkBid(North, 80)
+      |> mkBid(East, 90)
+      |> mkBid(South, 100)
+      |> mkBid(West, 110)
+      ;
+    state.bids |> List.length |> expect |> toEqual(4);
   });
-});*/
+});

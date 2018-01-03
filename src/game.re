@@ -1,6 +1,7 @@
-include Deck;
 
-module Coinche {
+
+module Game {
+    include Deck;
     open Util;
 
     type player = North | East | South | West;
@@ -13,7 +14,7 @@ module Coinche {
         | West => North
     };
 
-    
+
     module Bid {
         type bid = Bid(player, int, Deck.color) | Pass(player);
 
@@ -45,7 +46,6 @@ module Coinche {
         };
     };
 
-
     module Score {
         type score = {
             team: team,
@@ -55,7 +55,11 @@ module Coinche {
 
     type phase = Dealing | Bidding | Play | End;
 
+    type action = MakeBid(Bid.bid);
+    type error = InvalidBid(Bid.bid);
+
     type state = {
+        error: option(error),
         phase: phase,
         hands: list((player, list(Deck.card))),
         bids: list(Bid.bid),
@@ -65,6 +69,7 @@ module Coinche {
     
     let initialState = () : state => {
         {
+            error: None,
             phase: Dealing,
             hands: [
                 (North, []),
@@ -78,29 +83,18 @@ module Coinche {
         };
     };
 
-
-    type request('a, 'b) = Success('a) | Failure('b);
-    let bindReducer = (reducer) => ((action, state)) => switch state {
-        | Success(state) => Success((action, reducer(action, state)))
-        | Failure(m) => Failure(m)
-    };
-
-    type action = MakeBid(Bid.bid);
-    type error = InvalidBid(Bid.bid);
+    let stateErr = (error, state) => {...state, error: Some(error)};
 
     let reducer = (action: action, state: state) => {
         let validBid = state.bids |> Bid.validBid;
         switch action {
             | MakeBid(b) => {
                 validBid(b)
-                    ? Success({...state, bids: state.bids @ [b]})
-                    : Failure(InvalidBid(b))
+                    ? {...state, bids: state.bids @ [b]}
+                    : state |> stateErr(InvalidBid(b))
             }
         };
     };
 
-    let applyAction = (res) => switch res {
-        | Success((state, action)) => Success((reducer(action, state), action))
-        | Failure(m) => Failure(m)
-    };
+    let dispatch = (action) => (state) => reducer(action, state);
 }
