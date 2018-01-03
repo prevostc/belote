@@ -47,20 +47,37 @@ describe("Game", () => {
   open Game;
   open Game.Bid;
 
-  let mkBid = (p, v) => dispatch(MakeBid(Bid(p, v, Deck.Diamonds)));
+  let mkBid = (p, v) => Bid(p, v, Deck.Diamonds);
+  let dspBid = (p, v) => MakeBid(mkBid(p, v)) |> dispatch;
 
   test("We can make a bid", () => {
-    let state = initialState() |> mkBid(East, 80);
+    let state = initialState() |> dspBid(East, 80);
     state.bids |> List.length |> expect |> toEqual(1);
   });
 
   test("We can make multiple bids", () => {
     let state = initialState() 
-      |> mkBid(North, 80)
-      |> mkBid(East, 90)
-      |> mkBid(South, 100)
-      |> mkBid(West, 110)
+      |> dspBid(North, 80)
+      |> dspBid(East, 90)
+      |> dspBid(South, 100)
+      |> dspBid(West, 110)
       ;
     state.bids |> List.length |> expect |> toEqual(4);
+  });
+
+  test("Bad bids gets rejected", () => {
+    let state = initialState() 
+      |> dspBid(North, 80)
+      |> dspBid(East, 80)
+      ;
+    state.bids |> List.length |> expect |> toEqual(1);
+  });
+
+  test("Bad bids gets rejected", () => {
+    let state = initialState() 
+      |> dspBid(North, 80)
+      |> dspBid(East, 80)
+      ;
+    state.error |> expect |> toEqual(Some(InvalidBid(mkBid(East, 80))));
   });
 });
