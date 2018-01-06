@@ -13,7 +13,17 @@ module Game {
         | South => West
         | West => North
     };
+    let playerToNum = player => switch player {
+        | North => 0
+        | East => 1
+        | South => 2
+        | West => 3
+    };
 
+    module PlayerMap = Map.Make({
+        type t = player;
+        let compare = (a, b) => Util.intCompare(playerToNum(a), playerToNum(b));
+    });
 
     module Bid {
         type bid = Bid(player, int, Deck.color) | Pass(player);
@@ -61,7 +71,7 @@ module Game {
     type state = {
         error: option(error),
         phase: phase,
-        hands: list((player, list(Deck.card))),
+        hands: PlayerMap.t(list(Deck.card)),
         bids: list(Bid.bid),
         dealer: player,
         deck: list(Deck.card),
@@ -72,17 +82,28 @@ module Game {
         {
             error: None,
             phase: Dealing,
-            hands: [
-                (North, []),
-                (East, []),
-                (South, []),
-                (West, []),
-            ],
+            hands: PlayerMap.empty 
+                |> PlayerMap.add(North, [])
+                |> PlayerMap.add(East, [])
+                |> PlayerMap.add(South, [])
+                |> PlayerMap.add(West, []),
             dealer: North,
             bids: [],
             deck: Deck.newDeck(),
             scores: [],
         };
+    };
+
+    let dealHands = (dealer, deck) => {
+        let sliceCurry = (deck, start, stop) => deck |> Util.listSlice(start, stop);
+        let slc = sliceCurry(deck);
+        let rec nextNPlayer = (n, p) => n <= 0 ? p : nextNPlayer(n - 1, nextPlayer(p));
+        PlayerMap.empty 
+            |> PlayerMap.add(nextNPlayer(1, dealer), slc(0, 2)  @ slc(12, 13) @ slc(20, 22))
+            |> PlayerMap.add(nextNPlayer(2, dealer), slc(3, 5)  @ slc(14, 15) @ slc(23, 25))
+            |> PlayerMap.add(nextNPlayer(3, dealer), slc(6, 8)  @ slc(16, 17) @ slc(26, 28))
+            |> PlayerMap.add(nextNPlayer(4, dealer), slc(9, 11) @ slc(18, 19) @ slc(29, 31))
+            ;
     };
 
     let stateErr = (error, state) => {...state, error: Some(error)};
@@ -92,8 +113,12 @@ module Game {
         switch action {
             | StartGame => { ...state, deck: state.deck |> Util.listShuffle }
             | DealCards => { 
-                let cutDeck = Deck.cut(Random.int(List.length(state.deck)), state.deck);
-                { ...state, deck: cutDeck }
+                let rnd = state.deck |> List.length |> Random.int;
+                {
+                    ...state, 
+                    deck: [], 
+                    hands: state.deck |> Deck.cut(rnd) |> dealHands(state.dealer)
+                }
             }
             | MakeBid(b) => {
                 validBid(b)

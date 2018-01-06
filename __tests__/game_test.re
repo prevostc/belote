@@ -91,9 +91,18 @@ describe("Game Dealing", () => {
   let dispatchStart = Game.StartGame |> Game.dispatch;
   let initialState = Game.initialState();
 
+  test("deal cards", () => {
+    let mkCard = (c, m): Deck.card => { color: c, motif: m };
+    let dealt = Game.dealHands(Game.East, initialState.deck);
+    dealt |> Game.PlayerMap.find(South) |> Array.of_list |> expect |> toEqual([
+      mkCard(Spades, King), mkCard(Spades, Queen), mkCard(Spades, Jack),
+      mkCard(Hearts, Value(7)), mkCard(Hearts, Value(8)),
+      mkCard(Diamonds, Value(7)), mkCard(Diamonds, Value(8)), mkCard(Diamonds, Value(9)),
+    ] |> Array.of_list);
+  });
+
   test("The deck gets shuffled", () => {
     let state = initialState |> dispatchStart;
     Util.listEq(Deck.cmpCard, state.deck, initialState.deck) |> expect |> toEqual(false);
   });
-
 });

@@ -2,6 +2,21 @@ open Jest;
 include Util;
 include List;
 
+
+describe("Util.intCompare", () => {
+  open ExpectJs;
+
+  test("Compares two values", () => {
+    Util.intCompare(10, 20) |> expect |> toEqual(1);
+  });
+  test("Compares two values", () => {
+    Util.intCompare(20, 10) |> expect |> toEqual(-1);
+  });
+  test("Compares two values", () => {
+    Util.intCompare(10, 10) |> expect |> toEqual(0);
+  });
+});
+
 describe("Util.listLast", () => {
   open ExpectJs;
 
