@@ -2,7 +2,7 @@
 
 module Game {
     include Deck;
-    open Util;
+    include Util;
 
     type player = North | East | South | West;
     type team = NorthSouth | EastWest;
@@ -55,7 +55,7 @@ module Game {
 
     type phase = Dealing | Bidding | Play | End;
 
-    type action = MakeBid(Bid.bid);
+    type action = StartGame | MakeBid(Bid.bid);
     type error = InvalidBid(Bid.bid);
 
     type state = {
@@ -63,6 +63,7 @@ module Game {
         phase: phase,
         hands: list((player, list(Deck.card))),
         bids: list(Bid.bid),
+        dealer: player,
         deck: list(Deck.card),
         scores: list(Score.score),
     };
@@ -77,6 +78,7 @@ module Game {
                 (South, []),
                 (West, []),
             ],
+            dealer: North,
             bids: [],
             deck: Deck.newDeck(),
             scores: [],
@@ -88,6 +90,7 @@ module Game {
     let reducer = (action: action, state: state) => {
         let validBid = state.bids |> Bid.validBid;
         switch action {
+            | StartGame => { ...state, deck: state.deck |> Util.listShuffle }
             | MakeBid(b) => {
                 validBid(b)
                     ? {...state, bids: state.bids @ [b]}
@@ -96,5 +99,5 @@ module Game {
         };
     };
 
-    let dispatch = (action) => (state) => reducer(action, state);
+    let dispatch = reducer;
 }

@@ -1,5 +1,5 @@
 module Deck {
-    open Util;
+    include Util;
 
     type color = Spades | Hearts | Diamonds | Clubs;
     type motif = King | Queen | Jack | Ace | Value(int);
@@ -13,4 +13,6 @@ module Deck {
         [King, Queen, Jack, Ace, Value(7), Value(8), Value(9), Value(10)])
         |> List.map(((color, motif)) => { color, motif })
     ;
+
+    let cmpCard = (cA, cB) => cA.color === cB.color && cA.motif === cB.motif;
 }

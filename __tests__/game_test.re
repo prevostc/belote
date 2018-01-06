@@ -1,8 +1,9 @@
 open Jest;
 include List;
 include Array;
-open Deck;
-open Game;
+include Deck;
+include Game;
+include Util;
 
 describe("Bid", () => {
   open ExpectJs;
@@ -14,7 +15,6 @@ describe("Bid", () => {
     |> expect |> toEqual(
       lst |> List.map(expectedMap) |> Array.of_list
     );
-  let multiEq = multiEqBuilder(((value, _)) => value, ((_, expected)) => expected);
   let multiEqFalse = multiEqBuilder(v => v, (_) => false);
   let multiEqTrue = multiEqBuilder(v => v, (_) => true);
 
@@ -45,7 +45,7 @@ describe("Bid", () => {
   });
 });
 
-describe("Game", () => {
+describe("Game bid", () => {
   open ExpectJs;
   open Game.Bid;
 
@@ -82,4 +82,18 @@ describe("Game", () => {
       ;
     state.error |> expect |> toEqual(Some(Game.InvalidBid(mkBid(East, 80))));
   });
+});
+
+
+describe("Game Dealing", () => {
+  open ExpectJs;
+
+  let dispatchStart = Game.StartGame |> Game.dispatch;
+  let initialState = Game.initialState();
+
+  test("The deck gets shuffled", () => {
+    let state = initialState |> dispatchStart;
+    Util.listEq(Deck.cmpCard, state.deck, initialState.deck) |> expect |> toEqual(false);
+  });
+
 });
