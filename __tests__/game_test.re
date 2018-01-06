@@ -88,7 +88,6 @@ describe("Game bid", () => {
 describe("Game Dealing", () => {
   open ExpectJs;
 
-  let dispatchStart = Game.StartGame |> Game.dispatch;
   let initialState = Game.initialState();
 
   test("deal cards", () => {
@@ -102,7 +101,12 @@ describe("Game Dealing", () => {
   });
 
   test("The deck gets shuffled", () => {
-    let state = initialState |> dispatchStart;
+    let state = initialState |> Game.dispatch(Game.StartGame);
     Util.listEq(Deck.cmpCard, state.deck, initialState.deck) |> expect |> toEqual(false);
+  });
+
+  test("The deck gets dealt", () => {
+    let state = initialState |> Game.dispatch(Game.DealCards);
+    state.hands |> Game.PlayerMap.find(Game.South) |> List.length |> expect |> toEqual(8);
   });
 });

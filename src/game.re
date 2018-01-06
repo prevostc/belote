@@ -117,7 +117,8 @@ module Game {
                 {
                     ...state, 
                     deck: [], 
-                    hands: state.deck |> Deck.cut(rnd) |> dealHands(state.dealer)
+                    hands: state.deck |> Deck.cut(rnd) |> dealHands(state.dealer),
+                    phase: Bidding
                 }
             }
             | MakeBid(b) => {
