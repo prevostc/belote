@@ -14,5 +14,6 @@ module Deck {
         |> List.map(((color, motif)) => { color, motif })
     ;
 
+    let cut = (position, deck) => Util.listSlice(position, List.length(deck), deck) @ Util.listSlice(0, position - 1, deck);
     let cmpCard = (cA, cB) => cA.color === cB.color && cA.motif === cB.motif;
 }

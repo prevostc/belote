@@ -13,4 +13,9 @@ module Util {
     let listEq = (cmp, lstA, lstB) => List.combine(lstA, lstB) |> List.fold_left((agg, e) => switch e {
         | (a, b) => agg && cmp(a, b)
     }, true);
+
+    let listSlice = (start, stop, lst) => lst 
+        |> List.mapi((i, e) => (i, e)) 
+        |> List.filter(((i, _)) => i >= start && i <= stop)
+        |> List.map(((_, e)) => e) ;
 }

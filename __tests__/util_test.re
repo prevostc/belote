@@ -49,3 +49,12 @@ describe("Util.listEq", () => {
     Util.listEq((===), [1, 2, 3, 4, 5], [1, 2, 4, 4, 5]) |> expect |> toEqual(false);
   });
 });
+
+
+describe("Util.listSlice", () => {
+  open ExpectJs;
+
+  test("Slices a list", () => {
+    [1, 2, 3, 4, 5] |> Util.listSlice(0, 2) |> expect |> toEqual([1, 2, 3]);
+  });
+});

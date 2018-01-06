@@ -55,7 +55,7 @@ module Game {
 
     type phase = Dealing | Bidding | Play | End;
 
-    type action = StartGame | MakeBid(Bid.bid);
+    type action = StartGame | DealCards | MakeBid(Bid.bid);
     type error = InvalidBid(Bid.bid);
 
     type state = {
@@ -91,6 +91,10 @@ module Game {
         let validBid = state.bids |> Bid.validBid;
         switch action {
             | StartGame => { ...state, deck: state.deck |> Util.listShuffle }
+            | DealCards => { 
+                let cutDeck = Deck.cut(Random.int(List.length(state.deck)), state.deck);
+                { ...state, deck: cutDeck }
+            }
             | MakeBid(b) => {
                 validBid(b)
                     ? {...state, bids: state.bids @ [b]}
