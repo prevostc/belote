@@ -13,15 +13,15 @@ module Game {
         | South => West
         | West => North
     };
-    let playerToNum = player => switch player {
-        | North => 0
-        | East => 1
-        | South => 2
-        | West => 3
-    };
 
     module PlayerMap = Map.Make({
         type t = player;
+        let playerToNum = player => switch player {
+            | North => 0
+            | East => 1
+            | South => 2
+            | West => 3
+        };
         let compare = (a, b) => Util.intCompare(playerToNum(a), playerToNum(b));
     });
 
@@ -40,6 +40,10 @@ module Game {
                 && (v <= 160 || v === 250 || v === 400);
 
             let bidCount = lastBids |> filterNotPass |> List.length;
+            let isValidPlayer = p => lastBids |> Util.listLast |> b => switch b {
+                | Some(Bid(prevP, _, _) | Pass(prevP)) => nextPlayer(prevP) === p
+                | None => true
+            };
             if (bidCount === 0) {
                 switch bid {
                     | Bid(_, v, _) => validValue(v)
@@ -47,11 +51,25 @@ module Game {
                 };
             } else {
                 let lastBid = lastBids |> filterNotPass |> Util.listLast;
+
                 switch (lastBid, bid) {
-                    | (Some(Bid(prevP, _, _) | Pass(prevP)), Pass(p)) => nextPlayer(prevP) === p
-                    | (Some(Bid(prevP, prev, _)), Bid(p, v, _)) => validValue(v) && v > prev && nextPlayer(prevP) === p
+                    | (Some(Bid(_, _, _)), Pass(p)) => isValidPlayer(p)
+                    | (Some(Bid(_, prev, _)), Bid(p, v, _)) => validValue(v) && v > prev && isValidPlayer(p)
                     | _ => false
                 };
+            }
+        };
+
+        let bidPhaseEnd = (lastBids: list(bid)): bool => {
+            let length = lastBids |> List.length;
+            if ((lastBids |> List.length) < 4) {
+                false
+            } else {
+                let isPass = i => switch (List.nth(lastBids, i)) {
+                    | Pass(_) => true
+                    | _ => false
+                };
+                isPass(length - 1) && isPass(length - 2) && isPass(length - 3);
             }
         };
     };
@@ -123,7 +141,10 @@ module Game {
             }
             | MakeBid(b) => {
                 validBid(b)
-                    ? {...state, bids: state.bids @ [b]}
+                    ? {
+                        let bids = state.bids @ [b];
+                        { ...state, bids: bids, phase: Bid.bidPhaseEnd(bids) ? Play : state.phase }
+                    }
                     : state |> stateErr(InvalidBid(b))
             }
         };

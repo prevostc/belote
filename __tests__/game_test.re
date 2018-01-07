@@ -5,7 +5,7 @@ include Deck;
 include Game;
 include Util;
 
-describe("Bid", () => {
+describe("Bid validation", () => {
   open ExpectJs;
   open Game.Bid;
 
@@ -20,6 +20,9 @@ describe("Bid", () => {
 
   test("Pass is valid when next", () => {
     Pass(East) |> validBid([Pass(North)]) |> expect |> toEqual(true);
+  });
+  test("Pass is valid when next to pass", () => {
+    Pass(East) |> validBid([Bid(West, 80, Deck.Spades), Pass(North)]) |> expect |> toEqual(true);
   });
   test("Pass is invalid when not next", () => {
     Pass(South) |> validBid([Pass(North)]) |> expect |> toEqual(true);
@@ -51,14 +54,16 @@ describe("Game bid", () => {
 
   let mkBid = (p, v) => Bid(p, v, Deck.Diamonds);
   let dispatchBid = (p, v) => Game.MakeBid(mkBid(p, v)) |> Game.dispatch;
+  let dispatchPass = p => Game.MakeBid(Game.Bid.Pass(p)) |> Game.dispatch;
+  let initialState = {...Game.initialState(), phase: Game.Bidding };
 
   test("We can make a bid", () => {
-    let state = Game.initialState() |> dispatchBid(East, 80);
+    let state = initialState |> dispatchBid(East, 80);
     state.bids |> List.length |> expect |> toEqual(1);
   });
 
   test("We can make multiple bids", () => {
-    let state = Game.initialState() 
+    let state = initialState
       |> dispatchBid(North, 80)
       |> dispatchBid(East, 90)
       |> dispatchBid(South, 100)
@@ -68,7 +73,7 @@ describe("Game bid", () => {
   });
 
   test("Bad bids gets rejected", () => {
-    let state = Game.initialState() 
+    let state = initialState 
       |> dispatchBid(North, 80)
       |> dispatchBid(East, 80)
       ;
@@ -76,11 +81,21 @@ describe("Game bid", () => {
   });
 
   test("Bad bids gets rejected", () => {
-    let state = Game.initialState() 
+    let state = initialState
       |> dispatchBid(North, 80)
       |> dispatchBid(East, 80)
       ;
     state.error |> expect |> toEqual(Some(Game.InvalidBid(mkBid(East, 80))));
+  });
+
+  test("Passing 3 times ends bid phase", () => {
+    let state = initialState 
+      |> dispatchBid(North, 80)
+      |> dispatchPass(East)
+      |> dispatchPass(South)
+      |> dispatchPass(West)
+      ;
+    state.phase |> expect |> toEqual(Game.Play);
   });
 });
 
