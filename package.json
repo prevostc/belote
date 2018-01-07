@@ -2,10 +2,11 @@
   "name": "my-first-app",
   "version": "0.1.0",
   "scripts": {
-    "build": "bsb -make-world || true",
-    "watch": "bsb -make-world -w",
-    "clean": "bsb -clean-world || true",
-    "test": "jest ./lib/js --watch"
+    "build": "./node_modules/.bin/bsb -make-world || true",
+    "watch": "./node_modules/.bin/bsb -make-world -w",
+    "clean": "./node_modules/.bin/bsb -clean-world || true",
+    "test.watch": "./node_modules/.bin/jest ./lib/js --watch",
+    "test": "./node_modules/.bin/jest ./lib/js"
   },
   "keywords": [
     "BuckleScript"
