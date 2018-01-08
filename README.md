@@ -2,21 +2,11 @@
 
 [![Build Status](https://travis-ci.org/prevostc/belote.svg?branch=master)](https://travis-ci.org/prevostc/belote)
 
-# Basic Reason Template
+# Commands
 
-Hello! This project allows you to quickly get started with Reason and BuckleScript. If you wanted a more sophisticated version, try the `react` template (`bsb -theme react -init .`).
+See package.json scripts
 
-# Build
-```
-npm run build
-```
+# Deploy
 
-# Build + Watch
-
-```
-npm run watch
-```
-
-
-# Editor
-If you use `vscode`, Press `Windows + Shift + B` it will build automatically
+    docker build -t belote .
+    docker run --rm -it -p 4000:4000 -e "NODE_ENV=production" -u "node" belote

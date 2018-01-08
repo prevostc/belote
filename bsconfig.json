@@ -1,11 +1,12 @@
 {
-  "name": "my-first-app",
+  "name": "coinche-engine",
   "version": "0.1.0",
   "sources": [
-    "src",
-    "__tests__"
+    "engine/src",
+    "engine/__tests__"
   ],
   "package-specs": {
+    "output": "engine/lib",
     "module": "commonjs",
     "in-source": false
   },
@@ -14,5 +15,6 @@
       "bs-jest"
   ],
   "namespace": true,
-  "refmt": 3
+  "refmt": 3,
+  "generate-merlin" : true
 }
