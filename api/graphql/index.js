@@ -1,6 +1,6 @@
 const { makeExecutableSchema } = require('graphql-tools')
 const { mergeTypes } = require('merge-graphql-schemas')
-const merge = require('lodash/merge')
+const { merge } = require('lodash')
 
 const game = require('./game')
 
@@ -10,6 +10,7 @@ const typeDefs = mergeTypes([
 
 const resolvers = merge(
     game.resolvers,
+    {}
 )
 
 const schema = makeExecutableSchema({
