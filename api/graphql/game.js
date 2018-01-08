@@ -14,14 +14,14 @@ const schema = `
     }
     
     type Mutation {
-        createGame(name: String!): Game!
+        createGame(name: String): Game!
     }
 `
 
 const resolvers = {
     Query: {
         game: async(ctx, args) => {
-            const game = await util.promisify(gameCache.get(args.uuid));
+            const game = await util.promisify(gameCache.get)(args.uuid);
             if (! game) {
                 throw new Error('Game not found')
             }
@@ -30,8 +30,9 @@ const resolvers = {
     },
     Mutation: {
         createGame: async() => {
-            const u = uuid();
-            return util.promisify(gameCache.set(u, {'uuid': u }));
+            const game = {'uuid': uuid() }
+            await util.promisify(gameCache.set)(game.uuid, game);
+            return game
         },
     },
 }
