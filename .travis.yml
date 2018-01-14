@@ -6,7 +6,7 @@ install:
   - npm install
   - cd frontend && npm install && cd ..
 script:
- - npm run build
+ - npm run engine.build
  - npm run engine.test
  - npm run api.test
  - cd frontend && npm run test && cd ..
