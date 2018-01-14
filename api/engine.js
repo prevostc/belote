@@ -1,1 +1,1 @@
-module.exports = require('../lib/js/engine/src/coinche.bs');
+module.exports = require('../lib/js/engine/src/engine.bs');
