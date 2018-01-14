@@ -1,6 +1,7 @@
 import React from 'react';
 import { graphql } from 'react-apollo';
 import gql from 'graphql-tag';
+import PropTypes from 'prop-types';
 import { compose, pure, withState, withHandlers } from 'recompose';
 
 const enhance = compose(
@@ -37,5 +38,8 @@ export const CreateGame = enhance(({ createGame, errors, value, onChange }) => {
     );
 });
 
+CreateGame.propTypes = {
+    setGameUuid: PropTypes.func.isRequired,
+};
 
 export default CreateGame;
