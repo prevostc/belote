@@ -38,7 +38,4 @@ export const Board = enhance(({ game: { uuid, jsonState }}) => {
     );
 });
 
-console.log(Board)
-
-
 export default Board;
