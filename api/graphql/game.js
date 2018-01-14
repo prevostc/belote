@@ -1,11 +1,9 @@
-const NodeCache = require( "node-cache" )
 const uuid = require('uuid/v4');
-const util = require('util');
 const { PubSub } = require('graphql-subscriptions');
 const engine = require('../engine');
+const gameStore = require('../store');
 
 const pubsub = new PubSub();
-const gameCache = new NodeCache( { stdTTL: 24 * 60 * 60, checkperiod: 60 } );
 
 const schema = `
     type Game {
@@ -41,7 +39,7 @@ const resolvers = {
     },
     Query: {
         game: async (ctx, args) => {
-            const game = await util.promisify(gameCache.get)(args.uuid);
+            const game = await gameStore.get(args.uuid);
             if (! game) {
                 throw new Error('Game not found')
             }
@@ -52,7 +50,7 @@ const resolvers = {
         createGame: async() => {
             const u = uuid();
             const game = engine.createGame(u);
-            await util.promisify(gameCache.set)(u, game);
+            await gameStore.set(u, game);
             return game
         },
     },
