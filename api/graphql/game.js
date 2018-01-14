@@ -1,13 +1,22 @@
 const NodeCache = require( "node-cache" )
 const uuid = require('uuid/v4');
 const util = require('util');
-const engine = require('../engine')
+const { PubSub } = require('graphql-subscriptions');
+const engine = require('../engine');
+
+const pubsub = new PubSub();
 const gameCache = new NodeCache( { stdTTL: 24 * 60 * 60, checkperiod: 60 } );
 
 const schema = `
     type Game {
         uuid: String!
         jsonState: String!
+        players: [Player]!
+    }
+    
+    type Player {
+        uuid: String!
+        name: String!
     }
     
     type Query {
@@ -16,6 +25,11 @@ const schema = `
     
     type Mutation {
         createGame(name: String): Game!
+        joinGame(gameUuid: String!, name: String!): Game!
+    }
+    
+    type Subscription {
+        gameStateChanged(uuid: String!): Game!
     }
 `
 
@@ -41,6 +55,11 @@ const resolvers = {
             await util.promisify(gameCache.set)(u, game);
             return game
         },
+    },
+    Subscription: {
+        gameStateChanged: {
+            subscribe: () => pubsub.asyncIterator('gameStateChanged')
+        }
     },
 }
 

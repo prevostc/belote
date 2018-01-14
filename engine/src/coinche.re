@@ -8,4 +8,4 @@ type coinche = Js.t({.
 let createGame = (uuid): coinche => [%bs.obj {
     uuid: uuid,
     state: Game.initialState()
-}]
+}];

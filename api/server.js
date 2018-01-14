@@ -1,29 +1,23 @@
-const express = require('express')
-const { graphqlExpress } = require('graphql-server-express')
-const bodyParser = require('body-parser')
-const schema = require('./graphql')
-const cors = require('cors')
-const { addErrorLoggingToSchema } = require('graphql-tools')
-const logger = require('./logger')
+const { execute, subscribe } = require('graphql');
+const { createServer } = require('http');
+const { SubscriptionServer } = require('subscriptions-transport-ws');
+const logger = require('./logger');
+const schema = require('./graphql');
+const app = require('./app');
+const { HOST, PORT } = require('./config');
 
-const app = express()
-
-app.use(cors())
-app.options('*', cors()) // TODO: don't allow *
-
-// to support JSON-encoded bodies
-app.use(bodyParser.json())
-addErrorLoggingToSchema(schema, logger)
-app.use(
-    '/graphql',
-    graphqlExpress(request => ({
-        schema,
-        context: { user: request.user },
-    }))
-)
-
-const port = process.env.PORT || 4000
-const host = process.env.HOST || '0.0.0.0'
-app.listen(port, host)
-
-logger.info(`Running a GraphQL API server at http://${host}:${port}/graphql`)
+// Wrap the Express server
+const server = createServer(app);
+server.listen(PORT, () => {
+    logger.info(`Running a GraphQL API server at http://${HOST}:${PORT}/graphql`)
+    logger.info(`Running a GraphQL Subscriptions server at ws://${HOST}:${PORT}/subscriptions`)
+    // Set up the WebSocket for handling GraphQL subscriptions
+    new SubscriptionServer({
+        execute,
+        subscribe,
+        schema
+    }, {
+        server: server,
+        path: '/subscriptions',
+    });
+});

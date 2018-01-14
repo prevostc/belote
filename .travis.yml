@@ -4,6 +4,9 @@ node_js:
   - 8
 install:
   - npm install
+  - cd frontend && npm install
 script:
  - npm run build
- - npm run test
+ - npm run engine.test
+ - npm run api.test
+ - cd frontend && npm run test

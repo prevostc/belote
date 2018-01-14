@@ -10,6 +10,7 @@ const enhance = compose(
                 createGame(name: $name) {
                     uuid
                     jsonState
+                    players
                 }
             }
         `, {
@@ -31,7 +32,7 @@ const enhance = compose(
 export const CreateGame = enhance(({ createGame, errors, value, onChange }) => {
     return (
       <div>
-        <input type="name" onChange={onChange} value={value} />
+        <input type="name" placeholder="name" onChange={onChange} value={value} />
         <button onClick={() => createGame(value)}>Create Game</button>
         <ul>{errors && errors.map(e => <li>{e}</li>)}</ul>
       </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import CreateGame from './menu/CreateGame';
+import JoinGame from './menu/JoinGame';
 import Board from './game/Board';
 import { compose, withState } from 'recompose';
 
@@ -10,5 +11,8 @@ const enhance = compose(
 export default enhance(({ uuid, setGameUuid }) => {
   return uuid
       ? <Board uuid={uuid} />
-      : <CreateGame setGameUuid={setGameUuid} />
+      : <div>
+          <CreateGame setGameUuid={setGameUuid} />
+          <JoinGame setGameUuid={setGameUuid} />
+      </div>
 });
