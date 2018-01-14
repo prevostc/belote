@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import CreateGame from './menu/CreateGame';
 import Board from './game/Board';
 import { compose, withState } from 'recompose';
