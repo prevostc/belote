@@ -1,5 +1,12 @@
 open Game;
 
+/*
+@todo: refactor this
+this file links the low level reasonml world and high level js world
+ReasonML works with arrays of ids and ids, that's not a great api
+We should create a proper api mapping file that does not embeed business logic
+*/
+
 type playerState = Js.t({.
     uuid: string,
     name: string,

@@ -2,7 +2,6 @@ const uuid = require('uuid/v4');
 const { PubSub } = require('graphql-subscriptions');
 const engine = require('../engine');
 const gameStore = require('../store/gameStore');
-const playerStore = require('../store/playerStore');
 
 const pubsub = new PubSub();
 
@@ -56,17 +55,20 @@ const resolvers = {
     Query: {
         game: async(ctx, args) => {
             const game = await gameStore.get(args.uuid);
+            // @todo: hide sensitive info (other players cards, deck)
             return game;
         },
     },
     Mutation: {
         createGame: async() => {
             const game = engine.createGame(uuid());
+            // @todo: limit number of playing games
             await gameStore.save(game);
             return game
         },
         joinGame: async(ctx, args) => {
             let gameObj = await gameStore.get(args.gameUuid);
+            // @todo: input check
             const [ player, game ] = engine.joinGame(gameObj, uuid(), args.playerName, args.spot);
             await gameStore.save(game);
             return player;
