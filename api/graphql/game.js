@@ -66,11 +66,9 @@ const resolvers = {
             return game
         },
         joinGame: async(ctx, args) => {
-            let game = await gameStore.get(args.gameUuid);
-            const player = { uuid: uuid(), name: args.playerName, spot: args.spot, gameUuid: game.uuid };
-            game = engine.joinGame(game, player.name, player.spot);
+            let gameObj = await gameStore.get(args.gameUuid);
+            const [ player, game ] = engine.joinGame(gameObj, uuid(), args.playerName, args.spot);
             await gameStore.save(game);
-            await playerStore.save(player);
             return player;
         }
     },

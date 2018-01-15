@@ -76,7 +76,11 @@ describe('graphql game api', () => {
                 spot: "EAST",
             }
         });
-        expect(response.body).toEqual(['me', 1])
+        expect(response.body.data.joinGame.name).toEqual('Mitch');
+        expect(response.body.data.joinGame.spot).toEqual('EAST');
+        expect(response.body.data.joinGame.uuid.length).toEqual(36);
+        expect(response.body.data.joinGame.game.uuid).toEqual('abc');
+        expect(response.body.data.joinGame.game.players.length).toEqual(1);
     })
 
 })

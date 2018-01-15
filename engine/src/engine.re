@@ -9,7 +9,7 @@ type playerState = Js.t({.
 
 type gameState = Js.t({.
     uuid: string,
-    players: array((string, int)),
+    players: array(playerState),
     gameState: Game.state,
 });
 
@@ -19,8 +19,19 @@ let createGame = (uuid): gameState => [%bs.obj {
     gameState: Game.initialState()
 }];
 
-let joinGame = (game, playerUuid, spot): gameState => [%bs.obj {
-    uuid: game##uuid,
-    gameState: game##gameState,
-    players: Array.append(game##players, [| (playerUuid, spot) |])
-}]
+let joinGame = (game, playerUuid, playerName, spot): (playerState, gameState) => {
+    let player = [%bs.obj {
+        uuid: playerUuid,
+        name: playerName,
+        spot: spot,
+        gameUuid: game##uuid
+    }];
+    (
+        player,
+        [%bs.obj {
+            uuid: game##uuid,
+            gameState: game##gameState,
+            players: Array.append(game##players, [| player |])
+        }]
+    )
+}
