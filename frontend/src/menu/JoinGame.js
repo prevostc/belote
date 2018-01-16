@@ -9,8 +9,12 @@ const enhance = compose(
             mutation joinGame($gameUuid: String!, $name: String!) {
                 createGame(gameUuid: $gameUuid, name: $name) {
                     uuid
-                    jsonState
-                    players
+                    name
+                    spot
+                    game {
+                        uuid
+                        gameState
+                    }
                 }
             }
         `, {

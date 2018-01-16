@@ -8,7 +8,12 @@ const enhance = compose(
             query game($uuid: String!) {
                 game(uuid: $uuid) {
                     uuid
-                    jsonState
+                    gameState
+                    players {
+                        uuid
+                        spot
+                        name
+                    }
                 }
             }
         `, {
@@ -29,11 +34,14 @@ const enhance = compose(
     pure
 );
 
-export const Board = enhance(({ game: { uuid, jsonState }}) => {
+export const Board = enhance(({ game: { uuid, gameState, players }}) => {
     return (
       <div>
           <div>{uuid}</div>
-          <div>{jsonState}</div>
+          <div>{gameState}</div>
+          {players.map(({name, spot}) => {
+              <div>{name} - {spot}</div>
+          })}
       </div>
     );
 });

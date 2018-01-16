@@ -15,7 +15,7 @@ const schema = `
 
     type Game {
         uuid: String!
-        jsonState: String!
+        gameState: String!
         players: [Player]!
     }
     
@@ -40,23 +40,20 @@ const schema = `
     }
 `
 
+const gameFormatter = game => ({ ...game, gameState: JSON.stringify(game.gameState)});
+
 const resolvers = {
-    Game: {
-        jsonState: (game) => {
-            return JSON.stringify(game.state)
-        }
-    },
     Player: {
         game: async (player) => {
             const game = await gameStore.get(player.gameUuid);
-            return game;
+            return gameFormatter(game);
         }
     },
     Query: {
         game: async(ctx, args) => {
             const game = await gameStore.get(args.uuid);
             // @todo: hide sensitive info (other players cards, deck)
-            return game;
+            return gameFormatter(game);
         },
     },
     Mutation: {
@@ -64,7 +61,7 @@ const resolvers = {
             const game = engine.createGame(uuid());
             // @todo: limit number of playing games
             await gameStore.save(game);
-            return game
+            return gameFormatter(game)
         },
         joinGame: async(ctx, args) => {
             let gameObj = await gameStore.get(args.gameUuid);
