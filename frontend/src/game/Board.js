@@ -31,6 +31,10 @@ const enhance = compose(
         props => props.loading,
         renderComponent(() => <div>LOADING</div>),
     ),
+    branch(
+        props => props.error,
+        renderComponent(({ error }) => <div>ERROR: {JSON.stringify(error)}</div>),
+    ),
     pure
 );
 

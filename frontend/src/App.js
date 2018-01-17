@@ -1,18 +1,22 @@
 import React from 'react';
-import CreateGame from './menu/CreateGame';
-import JoinGame from './menu/JoinGame';
 import Board from './game/Board';
-import { compose, withState } from 'recompose';
+import Menu from './menu';
+import { compose, pure } from 'recompose';
+import {
+    BrowserRouter as Router,
+    Route,
+    Link
+} from 'react-router-dom'
 
 const enhance = compose(
-    withState('uuid', 'setGameUuid', ''),
+    pure
 );
 
-export default enhance(({ uuid, setGameUuid }) => {
-  return uuid
-      ? <Board uuid={uuid} />
-      : <div>
-          <CreateGame setGameUuid={setGameUuid} />
-          <JoinGame setGameUuid={setGameUuid} />
+export default enhance(() => {
+  return <Router>
+      <div>
+          <Route exact path="/" render={() => <Menu />} />
+          <Route path="/game/:uuid" render={({ match }) => <Board uuid={match.params.uuid} /> } />
       </div>
+  </Router>
 });
