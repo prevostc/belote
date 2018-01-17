@@ -22,7 +22,7 @@ const enhance = compose(
         props: ({ joinGame, ownProps: { onGameJoined } }) => ({
             joinGame: async (uuid, name) => {
                 const data = await joinGame({ variables: { uuid, name } })
-                onGameJoined(data.data.createGame.uuid);
+                onGameJoined && onGameJoined(data.data.createGame.uuid);
             }
         }),
     }),
@@ -34,10 +34,6 @@ const enhance = compose(
         props => props.error,
         renderComponent(({ error }) => <div>ERROR: {JSON.stringify(error)}</div>),
     ),
-    withState('uuid', 'updateUuid', ''),
-    withHandlers({
-        onUuidChange: props => event => props.updateUuid(event.target.value),
-    }),
     withState('name', 'updateName', ''),
     withHandlers({
         onNameChange: props => event => props.updateName(event.target.value),
@@ -45,19 +41,19 @@ const enhance = compose(
     pure
 );
 
-export const JoinGame = enhance(({ joinGame, errors, uuid, name, onUuidChange, onNameChange }) => {
+export const JoinGame = enhance(({ joinGame, errors, gameUuid, name, onNameChange }) => {
     return (
       <div>
-        <input name="uuid" placeholder="uuid" onChange={onUuidChange} value={uuid} />
         <input name="name" placeholder="name" onChange={onNameChange} value={name} />
-        <button onClick={() => joinGame(uuid, name)}>Join Game</button>
+        <button onClick={() => joinGame(gameUuid, name)}>Join Game</button>
         <ul>{errors && errors.map(e => <li>{e}</li>)}</ul>
       </div>
     );
 });
 
 JoinGame.propTypes = {
-    onGameJoined: PropTypes.func.isRequired,
+    gameUuid: PropTypes.string.isRequired,
+    onGameJoined: PropTypes.func,
 };
 
 export default JoinGame;

@@ -1,6 +1,6 @@
 import React from 'react';
 import CreateGame from './CreateGame';
-import JoinGame from './JoinGame';
+import JoinGameWithUuid from './JoinGameWithUuid';
 import {compose, pure} from "recompose";
 
 const enhance = compose(
@@ -11,7 +11,7 @@ const Menu = enhance(() => {
     return (
         <div>
             <CreateGame onGameCreated={(uuid) => window.location.replace(`/game/${uuid}`)}/>
-            <JoinGame onGameJoined={() => {}}/>
+            <JoinGameWithUuid />
         </div>
     );
 });

@@ -2,6 +2,7 @@ import React from 'react';
 import { graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 import { compose, pure, branch, renderComponent } from 'recompose';
+import JoinGame from './JoinGame';
 
 const enhance = compose(
     graphql(gql`
@@ -43,9 +44,8 @@ export const Board = enhance(({ game: { uuid, gameState, players }}) => {
       <div>
           <div>{uuid}</div>
           <div>{gameState}</div>
-          {players.map(({name, spot}) => {
-              <div>{name} - {spot}</div>
-          })}
+          {players.map(({name, spot}) => <div>{name} - {spot}</div>)}
+          <JoinGame gameUuid={uuid} />
       </div>
     );
 });

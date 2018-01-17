@@ -4,8 +4,7 @@ import Menu from './menu';
 import { compose, pure } from 'recompose';
 import {
     BrowserRouter as Router,
-    Route,
-    Link
+    Route
 } from 'react-router-dom'
 
 const enhance = compose(

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "scripts": {
     "api.start": "node api/server.js",
-    "api.watch": "./node_modules/.bin/nodemon api/server.js",
+    "api.watch": "./node_modules/.bin/nodemon --watch api --watch lib/js api/server.js",
     "api.test": "./node_modules/.bin/jest ./api",
     "api.test.watch": "./node_modules/.bin/jest ./api --watch",
     "engine.build": "./node_modules/.bin/bsb -make-world || true",
