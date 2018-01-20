@@ -81,6 +81,6 @@ describe('graphql game api', () => {
         expect(response.body.data.joinGame.uuid.length).toEqual(36);
         expect(response.body.data.joinGame.game.uuid).toEqual('abc');
         expect(response.body.data.joinGame.game.players.length).toEqual(1);
-    })
+    });
 
 })
