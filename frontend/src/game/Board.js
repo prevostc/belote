@@ -1,21 +1,31 @@
 import React from 'react';
 import { graphql } from 'react-apollo';
-import { compose, pure, branch, renderComponent } from 'recompose';
+import { compose, pure, branch, renderComponent, lifecycle } from 'recompose';
 import JoinGame from './JoinGame';
-import { gameQuery } from "../api/game";
+import { gameQuery, subscribeToChange } from "../api/game";
 
 
 const enhance = compose(
     graphql(gameQuery, {
-        props: ({ data: { loading, error, game } }) => ({
-            loading,
-            error,
-            game,
-        }),
+        props: ({ data }) => {
+            const { loading, error, game } = data;
+            return ({
+                loading,
+                error,
+                game,
+                subscribeToChange: subscribeToChange(data),
+            })
+        },
         options: ({ uuid }) => ({
             variables: { uuid },
         }),
-
+    }),
+    lifecycle({
+        componentWillMount() {
+            this.props.subscribeToChange({
+                uuid: this.props.uuid,
+            });
+        }
     }),
     branch(
         props => props.loading,

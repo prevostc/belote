@@ -1,9 +1,13 @@
 const uuid = require('uuid/v4');
-const { PubSub } = require('graphql-subscriptions');
+const { PubSub, withFilter } = require('graphql-subscriptions');
 const engine = require('../engine');
 const gameStore = require('../store/gameStore');
 
 const pubsub = new PubSub();
+const GAME_UPDATE_TOPIC = 'GAME_TOPIC';
+const publishGameChange = (game) => {
+    pubsub.publish(GAME_UPDATE_TOPIC, {gameStateChanged: gameFormatter(game)});
+};
 
 const schema = `
     enum PlayerSpot {
@@ -61,6 +65,7 @@ const resolvers = {
             const game = engine.createGame(uuid());
             // @todo: limit number of playing games
             await gameStore.save(game);
+            publishGameChange(game);
             return gameFormatter(game)
         },
         joinGame: async(ctx, args) => {
@@ -68,12 +73,20 @@ const resolvers = {
             // @todo: input check
             const [ player, game ] = engine.joinGame(gameObj, uuid(), args.playerName, args.spot);
             await gameStore.save(game);
+            publishGameChange(game);
             return player;
         }
     },
     Subscription: {
         gameStateChanged: {
-            subscribe: () => pubsub.asyncIterator('gameStateChanged')
+            subscribe: withFilter(
+                () => pubsub.asyncIterator(GAME_UPDATE_TOPIC),
+                (payload, variables) => {
+                    const game = payload.gameStateChanged;
+                    console.log('game.uuid === variables.uuid', game.uuid === variables.uuid);
+                    return game.uuid === variables.uuid;
+                }
+            )
         }
     },
 }

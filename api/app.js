@@ -1,5 +1,5 @@
 const express = require('express')
-const { graphqlExpress } = require('graphql-server-express')
+const { graphqlExpress, graphiqlExpress } = require('graphql-server-express')
 const bodyParser = require('body-parser')
 const schema = require('./graphql')
 const cors = require('cors')
@@ -16,5 +16,10 @@ app.options('*', corsMdl);
 app.use(bodyParser.json())
 addErrorLoggingToSchema(schema, logger)
 app.use('/graphql', graphqlExpress({ schema }))
+
+app.use('/graphiql', graphiqlExpress({
+    endpointURL: '/graphql',
+    subscriptionsEndpoint: `ws://localhost:4000/subscriptions`
+}));
 
 module.exports = app

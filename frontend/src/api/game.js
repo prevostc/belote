@@ -45,3 +45,33 @@ export const joinGameUpdate = ({ uuid }) => (proxy, { data: { joinGame } }) => {
     data.game = joinGame.game;
     proxy.writeQuery({ query, variables, data })
 };
+
+const gameChangeSubscription = gql`
+    subscription gameStateChanged($uuid: String!) {
+      gameStateChanged(uuid: $uuid) {
+        ...gameFragment
+      }
+    }
+    ${gameFragment}
+`;
+
+export const subscribeToChange = (query) => ({uuid}) => {
+    return query.subscribeToMore({
+        document: gameChangeSubscription,
+        variables: { uuid },
+        updateQuery: (prev, {subscriptionData}) => {
+            if (!subscriptionData.data) {
+                return prev;
+            }
+            const newGame = subscriptionData.data.gameStateChanged;
+            return {
+                ...prev,
+                game: {
+                    ...prev.game,
+                    gameState: newGame.gameState,
+                    players: newGame.players,
+                }
+            };
+        }
+    });
+};
