@@ -83,7 +83,6 @@ const resolvers = {
                 () => pubsub.asyncIterator(GAME_UPDATE_TOPIC),
                 (payload, variables) => {
                     const game = payload.gameStateChanged;
-                    console.log('game.uuid === variables.uuid', game.uuid === variables.uuid);
                     return game.uuid === variables.uuid;
                 }
             )
