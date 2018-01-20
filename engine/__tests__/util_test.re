@@ -73,3 +73,33 @@ describe("Util.listSlice", () => {
     [1, 2, 3, 4, 5] |> Util.listSlice(0, 2) |> expect |> toEqual([1, 2, 3]);
   });
 });
+
+
+describe("Util.arrayFind", () => {
+  open ExpectJs;
+
+  test("Finds None", () => {
+    [|1, 2, 3, 4, 5|] |> Util.arrayFind(e => e === 12) |> expect |> toEqual(None);
+  });
+  test("Finds an element in an array", () => {
+    [|1, 2, 3, 4, 5|] |> Util.arrayFind(e => e === 4) |> expect |> toEqual(Some(4));
+  });
+  test("Finds the first element in an array", () => {
+    [|(1, 1), (1, 2), (1, 3)|] |> Util.arrayFind(((one, i)) => one === 1) |> expect |> toEqual(Some((1, 1)));
+  });
+});
+
+
+describe("Util.arrayFilter", () => {
+  open ExpectJs;
+
+  test("Filters nothing", () => {
+    [|1, 2, 3, 4, 5|] |> Util.arrayFilter(e => e !== 12) |> expect |> toEqual([|1, 2, 3, 4, 5|]);
+  });
+  test("Filters one element", () => {
+    [|1, 2, 3, 4, 5|] |> Util.arrayFilter(e => e !== 4) |> expect |> toEqual([|1, 2, 3, 5|]);
+  });
+  test("Filters multiple elements", () => {
+    [|(1, 1), (1, 2), (2, 3)|] |> Util.arrayFilter(((a, b)) => a !== 1) |> expect |> toEqual([|(2, 3)|]);
+  });
+})

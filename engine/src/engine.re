@@ -1,4 +1,5 @@
 open Game;
+open Util;
 
 /*
 @todo: refactor this
@@ -27,18 +28,31 @@ let createGame = (uuid): gameState => [%bs.obj {
 }];
 
 let joinGame = (game, playerUuid, playerName, spot): (playerState, gameState) => {
-    let player = [%bs.obj {
+    let newPlayer = [%bs.obj {
         uuid: playerUuid,
         name: playerName,
         spot: spot,
         gameUuid: game##uuid
     }];
+
+    let sameSpot = game##players |> Util.arrayFind(p => p##spot === spot);
+    let sameUuid = game##players |> Util.arrayFind(p => p##uuid === playerUuid);
+
+    let (player, players) = switch (sameSpot, sameUuid) {
+        /* already someone there, do nothing */
+        | (Some(p), _) => (p, game##players)
+        /* player wants to move spot */
+        | (None, Some(p)) => (p, game##players |> Util.arrayFilter(e => e##uuid !== p##uuid) |> Array.append([|p|]))
+        /* new player */
+        | _ => (newPlayer, Array.append(game##players, [| newPlayer |]))
+    };
+
     (
         player,
         [%bs.obj {
             uuid: game##uuid,
             gameState: game##gameState,
-            players: Array.append(game##players, [| player |])
+            players: players
         }]
     )
 }

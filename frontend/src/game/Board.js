@@ -1,23 +1,12 @@
 import React from 'react';
 import { graphql } from 'react-apollo';
-import gql from 'graphql-tag';
 import { compose, pure, branch, renderComponent } from 'recompose';
 import JoinGame from './JoinGame';
+import { gameQuery } from "../api/game";
+
 
 const enhance = compose(
-    graphql(gql`
-            query game($uuid: String!) {
-                game(uuid: $uuid) {
-                    uuid
-                    gameState
-                    players {
-                        uuid
-                        spot
-                        name
-                    }
-                }
-            }
-        `, {
+    graphql(gameQuery, {
         props: ({ data: { loading, error, game } }) => ({
             loading,
             error,
@@ -44,7 +33,7 @@ export const Board = enhance(({ game: { uuid, gameState, players }}) => {
       <div>
           <div>{uuid}</div>
           <div>{gameState}</div>
-          {players.map(({name, spot}) => <div>{name} - {spot}</div>)}
+          {players.map(({name, uuid, spot}) => <div key={spot}>{uuid} - {name} - {spot}</div>)}
           <JoinGame gameUuid={uuid} />
       </div>
     );

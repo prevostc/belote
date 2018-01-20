@@ -1,27 +1,19 @@
 import React from 'react';
 import { graphql } from 'react-apollo';
-import gql from 'graphql-tag';
 import PropTypes from 'prop-types';
 import {compose, pure, withState, withHandlers, renderComponent, branch} from 'recompose';
+import { joinGameQuery, joinGameUpdate } from "../api/game";
 
 const enhance = compose(
-    graphql(gql`
-            mutation joinGame($gameUuid: String!, $name: String!) {
-                createGame(gameUuid: $gameUuid, name: $name) {
-                    uuid
-                    name
-                    spot
-                    game {
-                        uuid
-                        gameState
-                    }
-                }
-            }
-        `, {
+    graphql(joinGameQuery, {
         name: 'joinGame',
         props: ({ joinGame, ownProps: { onGameJoined } }) => ({
-            joinGame: async (uuid, name) => {
-                const data = await joinGame({ variables: { uuid, name } })
+            joinGame: async (uuid, name, spot) => {
+                const variables = { uuid, name, spot };
+                const data = await joinGame({
+                    variables,
+                    update: joinGameUpdate({ uuid }),
+                })
                 onGameJoined && onGameJoined(data.data.createGame.uuid);
             }
         }),
@@ -41,11 +33,13 @@ const enhance = compose(
     pure
 );
 
+const spots = ['NORTH', 'EAST', 'SOUTH', 'WEST'];
+
 export const JoinGame = enhance(({ joinGame, errors, gameUuid, name, onNameChange }) => {
     return (
       <div>
         <input name="name" placeholder="name" onChange={onNameChange} value={name} />
-        <button onClick={() => joinGame(gameUuid, name)}>Join Game</button>
+        {spots.map(spot => <button key={spot} onClick={() => joinGame(gameUuid, name, spot)}>Join {spot}</button>)}
         <ul>{errors && errors.map(e => <li>{e}</li>)}</ul>
       </div>
     );
