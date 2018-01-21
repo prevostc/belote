@@ -95,7 +95,7 @@ describe("Game bid", () => {
       |> dispatchPass(South)
       |> dispatchPass(West)
       ;
-    state.phase |> expect |> toEqual(Game.Play);
+    state.phase |> expect |> toEqual(Game.Playing);
   });
 });
 
@@ -104,9 +104,9 @@ describe("Game Dealing", () => {
   open ExpectJs;
 
   let initialState = Game.initialState();
+  let mkCard = (c, m): Deck.card => { color: c, motif: m };
 
   test("deal cards", () => {
-    let mkCard = (c, m): Deck.card => { color: c, motif: m };
     let dealt = Game.dealHands(Game.East, initialState.deck);
     dealt |> Game.PlayerMap.find(South) |> Array.of_list |> expect |> toEqual([
       mkCard(Spades, King), mkCard(Spades, Queen), mkCard(Spades, Jack),
@@ -117,11 +117,12 @@ describe("Game Dealing", () => {
 
   test("The deck gets shuffled", () => {
     let state = initialState |> Game.dispatch(Game.StartGame);
-    Util.listEq(Deck.cmpCard, state.deck, initialState.deck) |> expect |> toEqual(false);
+    /* @todo: this tests may fail il the first card stays unchanged, seed the random to fix */
+    state.hands |> Game.PlayerMap.find(Game.East) |> List.hd |> expect |> not_ |> toEqual(mkCard(Spades, King));
   });
 
   test("The deck gets dealt", () => {
-    let state = initialState |> Game.dispatch(Game.DealCards);
+    let state = initialState |> Game.dispatch(Game.StartGame);
     state.hands |> Game.PlayerMap.find(Game.South) |> List.length |> expect |> toEqual(8);
   });
 });

@@ -4,6 +4,7 @@ export const gameFragment = gql`
     fragment gameFragment on Game {
         uuid
         gameState
+        phase
         players {
             uuid
             spot

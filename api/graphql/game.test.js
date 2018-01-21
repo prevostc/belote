@@ -72,6 +72,7 @@ describe('graphql game api', () => {
                             players {
                                 uuid
                             }
+                            phase
                        }
                     }
                 }`,
@@ -85,6 +86,7 @@ describe('graphql game api', () => {
         expect(response.body.data.joinGame.spot).toEqual('EAST');
         expect(response.body.data.joinGame.uuid.length).toEqual(36);
         expect(response.body.data.joinGame.game.uuid).toEqual('abc');
+        expect(response.body.data.joinGame.game.phase).toEqual('INITIAL');
         expect(response.body.data.joinGame.game.players.length).toEqual(1);
     });
 })

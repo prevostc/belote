@@ -67,4 +67,16 @@ describe("Engine API tests", () => {
         (("1", Game.West),  [("1", Game.West), ("2", Game.North)])
     ));
   });
+
+  test("Starts the game when 4 people joined", () => {
+    let (p1, g1) = Engine.joinGame(game, "1", "a", Game.North);
+    let (p2, g2) = Engine.joinGame(g1, "2", "b", Game.South);
+    let (p3, g3) = Engine.joinGame(g2, "3", "c", Game.East);
+    let (p4, g4) = Engine.joinGame(g3, "4", "d", Game.West);
+    (
+        game.gameState.phase, g1.gameState.phase, g2.gameState.phase, g3.gameState.phase, g4.gameState.phase
+    ) |> expect |> toEqual((
+        Game.Initial, Game.Initial, Game.Initial, Game.Initial, Game.Bidding
+    ));
+  });
 });

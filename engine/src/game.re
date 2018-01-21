@@ -81,9 +81,9 @@ module Game {
         };
     };
 
-    type phase = Dealing | Bidding | Play | End;
+    type phase = Initial | Dealing | Bidding | Playing | End;
 
-    type action = StartGame | DealCards | MakeBid(Bid.bid);
+    type action = StartGame | MakeBid(Bid.bid);
     type error = InvalidBid(Bid.bid);
 
     type state = {
@@ -99,7 +99,7 @@ module Game {
     let initialState = () : state => {
         {
             error: None,
-            phase: Dealing,
+            phase: Initial,
             hands: PlayerMap.empty 
                 |> PlayerMap.add(North, [])
                 |> PlayerMap.add(East, [])
@@ -126,16 +126,21 @@ module Game {
 
     let stateErr = (error, state) => {...state, error: Some(error)};
 
-    let reducer = (action: action, state: state) => {
+    let reducer = (action: action, state: state): state => {
         let validBid = state.bids |> Bid.validBid;
         switch action {
-            | StartGame => { ...state, deck: state.deck |> Util.listShuffle }
-            | DealCards => { 
+            | StartGame => {
+                /*
+                    @todo: split actions on state in different reducers ?
+                           maybe the phase change, deck shuffle, deck cut and deck dealing do
+                           not belong to the same place ?
+                    @todo: shuffle + cut does not make any sense when it's a machine dealing
+                */
                 let rnd = state.deck |> List.length |> Random.int;
                 {
-                    ...state, 
-                    deck: [], 
-                    hands: state.deck |> Deck.cut(rnd) |> dealHands(state.dealer),
+                    ...state,
+                    deck: [],
+                    hands: state.deck |> Util.listShuffle |> Deck.cut(rnd) |> dealHands(state.dealer),
                     phase: Bidding
                 }
             }
@@ -143,7 +148,7 @@ module Game {
                 validBid(b)
                     ? {
                         let bids = state.bids @ [b];
-                        { ...state, bids: bids, phase: Bid.bidPhaseEnd(bids) ? Play : state.phase }
+                        { ...state, bids: bids, phase: Bid.bidPhaseEnd(bids) ? Playing : state.phase }
                     }
                     : state |> stateErr(InvalidBid(b))
             }

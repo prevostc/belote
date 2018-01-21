@@ -33,6 +33,7 @@ const schema = `
         uuid: String!
         gameState: String!
         players: [Player]!
+        phase: String!
     }
     
     type Player {

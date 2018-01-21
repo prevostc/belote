@@ -42,5 +42,12 @@ let joinGame = (game: gameState, playerUuid: string, playerName: string, spot: G
         | _ => (newPlayer, game.players @ [newPlayer])
     };
 
-    ( player, { ...game, players: players } );
+    (
+        player,
+        {
+            ...game,
+            gameState: (players |> List.length) === 4 ? Game.dispatch(Game.StartGame, game.gameState) : game.gameState,
+            players: players
+        }
+    );
 }
