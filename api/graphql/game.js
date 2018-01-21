@@ -9,6 +9,16 @@ const publishGameChange = (game) => {
     pubsub.publish(GAME_UPDATE_TOPIC, {gameStateChanged: gameFormatter(game)});
 };
 
+// temp test game
+(function(){
+    const gameUuid = "test-game";
+    let game = engine.createGame(gameUuid);
+    [p, game] = engine.joinGame(game, '1', 'n', "NORTH");
+    [p, game] = engine.joinGame(game, '2', 's', "SOUTH");
+    [p, game] = engine.joinGame(game, '3', 'e', "EAST");
+    gameStore.save(game);
+})();
+
 const schema = `
     enum PlayerSpot {
       NORTH
@@ -36,7 +46,7 @@ const schema = `
     
     type Mutation {
         createGame(name: String): Game!
-        joinGame(gameUuid: String!, playerUuid: String, playerName: String!, spot: PlayerSpot!): Player!
+        joinGame(gameUuid: String!, playerUuid: String, playerName: String!, spot: PlayerSpot!): Player
     }
     
     type Subscription {
@@ -73,9 +83,11 @@ const resolvers = {
             const playerUuid = args.playerUuid || uuid();
             // @todo: input check
             const [ player, game ] = engine.joinGame(gameObj, playerUuid, args.playerName, args.spot);
+            // @todo: detect if game changed to save and publish only when necessary
             await gameStore.save(game);
             publishGameChange(game);
-            return player;
+            // already a player there
+            return player.uuid === playerUuid ? player : null;
         }
     },
     Subscription: {

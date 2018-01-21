@@ -42,7 +42,7 @@ let joinGame = (game, playerUuid, playerName, spot): (playerState, gameState) =>
 
     let (player, players) = switch (sameSpot, sameUuid) {
         /* already someone there, do nothing */
-        | (Some(p), None) => (newPlayer, game##players)
+        | (Some(p), None) => (p, game##players)
         | (Some(p), Some(o)) => (o, game##players)
         /* player wants to move spot */
         | (None, Some(p)) => (newPlayer, game##players |> Util.arrayFilter(e => e##uuid !== p##uuid) |> Array.append([|newPlayer|]))

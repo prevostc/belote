@@ -14,8 +14,8 @@ const enhance = compose(
                 const data = await joinGame({
                     variables,
                     update: joinGameUpdate({ uuid: gameUuid }),
-                })
-                onGameJoined && onGameJoined({
+                });
+                onGameJoined && data.data.joinGame && onGameJoined({
                     uuid: data.data.joinGame.uuid,
                     name: data.data.joinGame.name,
                     spot: data.data.joinGame.spot,
