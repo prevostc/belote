@@ -28,6 +28,8 @@ let createGame = (uuid): gameState => [%bs.obj {
 }];
 
 let joinGame = (game, playerUuid, playerName, spot): (playerState, gameState) => {
+    let validSpot = spot === "SOUTH" || spot === "WEST" || spot === "NORTH" || spot === "EAST";
+
     let newPlayer = [%bs.obj {
         uuid: playerUuid,
         name: playerName,
@@ -40,19 +42,22 @@ let joinGame = (game, playerUuid, playerName, spot): (playerState, gameState) =>
 
     let (player, players) = switch (sameSpot, sameUuid) {
         /* already someone there, do nothing */
-        | (Some(p), _) => (p, game##players)
+        | (Some(p), None) => (newPlayer, game##players)
+        | (Some(p), Some(o)) => (o, game##players)
         /* player wants to move spot */
-        | (None, Some(p)) => (p, game##players |> Util.arrayFilter(e => e##uuid !== p##uuid) |> Array.append([|p|]))
+        | (None, Some(p)) => (newPlayer, game##players |> Util.arrayFilter(e => e##uuid !== p##uuid) |> Array.append([|newPlayer|]))
         /* new player */
         | _ => (newPlayer, Array.append(game##players, [| newPlayer |]))
     };
 
-    (
-        player,
-        [%bs.obj {
-            uuid: game##uuid,
-            gameState: game##gameState,
-            players: players
-        }]
-    )
+    validSpot
+        ? (
+            player,
+            [%bs.obj {
+                uuid: game##uuid,
+                gameState: game##gameState,
+                players: players
+            }]
+        )
+        :( player, game )
 }

@@ -36,7 +36,7 @@ const schema = `
     
     type Mutation {
         createGame(name: String): Game!
-        joinGame(gameUuid: String!, playerName: String!, spot: PlayerSpot!): Player!
+        joinGame(gameUuid: String!, playerUuid: String, playerName: String!, spot: PlayerSpot!): Player!
     }
     
     type Subscription {
@@ -70,8 +70,9 @@ const resolvers = {
         },
         joinGame: async(ctx, args) => {
             let gameObj = await gameStore.get(args.gameUuid);
+            const playerUuid = args.playerUuid || uuid();
             // @todo: input check
-            const [ player, game ] = engine.joinGame(gameObj, uuid(), args.playerName, args.spot);
+            const [ player, game ] = engine.joinGame(gameObj, playerUuid, args.playerName, args.spot);
             await gameStore.save(game);
             publishGameChange(game);
             return player;

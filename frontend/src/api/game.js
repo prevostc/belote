@@ -23,8 +23,8 @@ export const gameQuery = gql`
 `;
 
 export const joinGameQuery = gql`
-    mutation joinGame($uuid: String!, $name: String!, $spot: PlayerSpot!) {
-        joinGame(gameUuid: $uuid, playerName: $name, spot: $spot) {
+    mutation joinGame($uuid: String!, $playerUuid: String, $name: String!, $spot: PlayerSpot!) {
+        joinGame(gameUuid: $uuid, playerUuid: $playerUuid, playerName: $name, spot: $spot) {
             uuid
             name
             spot

@@ -7,14 +7,19 @@ import { joinGameQuery, joinGameUpdate } from "../api/game";
 const enhance = compose(
     graphql(joinGameQuery, {
         name: 'joinGame',
-        props: ({ joinGame, ownProps: { onGameJoined } }) => ({
-            joinGame: async (uuid, name, spot) => {
-                const variables = { uuid, name, spot };
+        props: ({ joinGame, ownProps: { playerUuid, onGameJoined, gameUuid } }) => ({
+            joinGame: async (name, spot) => {
+                const variables = { uuid: gameUuid, playerUuid, name, spot };
+                console.log(variables);
                 const data = await joinGame({
                     variables,
-                    update: joinGameUpdate({ uuid }),
+                    update: joinGameUpdate({ uuid: gameUuid }),
                 })
-                onGameJoined && onGameJoined(data.data.createGame.uuid);
+                onGameJoined && onGameJoined({
+                    uuid: data.data.joinGame.uuid,
+                    name: data.data.joinGame.name,
+                    spot: data.data.joinGame.spot,
+                });
             }
         }),
     }),
@@ -35,11 +40,11 @@ const enhance = compose(
 
 const spots = ['NORTH', 'EAST', 'SOUTH', 'WEST'];
 
-export const JoinGame = enhance(({ joinGame, errors, gameUuid, name, onNameChange }) => {
+export const JoinGame = enhance(({ joinGame, errors, name, onNameChange }) => {
     return (
       <div>
         <input name="name" placeholder="name" onChange={onNameChange} value={name} />
-        {spots.map(spot => <button key={spot} onClick={() => joinGame(gameUuid, name, spot)}>Join {spot}</button>)}
+        {spots.map(spot => <button key={spot} onClick={() => joinGame(name, spot)}>Join {spot}</button>)}
         <ul>{errors && errors.map(e => <li>{e}</li>)}</ul>
       </div>
     );
@@ -48,6 +53,7 @@ export const JoinGame = enhance(({ joinGame, errors, gameUuid, name, onNameChang
 JoinGame.propTypes = {
     gameUuid: PropTypes.string.isRequired,
     onGameJoined: PropTypes.func,
+    playerUuid: PropTypes.string,
 };
 
 export default JoinGame;

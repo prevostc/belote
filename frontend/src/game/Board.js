@@ -1,6 +1,6 @@
 import React from 'react';
 import { graphql } from 'react-apollo';
-import { compose, pure, branch, renderComponent, lifecycle } from 'recompose';
+import {compose, pure, branch, renderComponent, lifecycle, withState} from 'recompose';
 import JoinGame from './JoinGame';
 import { gameQuery, subscribeToChange } from "../api/game";
 
@@ -35,16 +35,19 @@ const enhance = compose(
         props => props.error,
         renderComponent(({ error }) => <div>ERROR: {JSON.stringify(error)}</div>),
     ),
+    withState('player', 'setPlayer', ''),
     pure
 );
 
-export const Board = enhance(({ game: { uuid, gameState, players }}) => {
+export const Board = enhance(({ player, setPlayer, game: { uuid, gameState, players }}) => {
+    const p = player ? <div>{player.uuid} - {player.name} - {player.spot}</div> : <div></div>;
     return (
       <div>
+          {p}
           <div>{uuid}</div>
           <div>{gameState}</div>
           {players.map(({name, uuid, spot}) => <div key={spot}>{uuid} - {name} - {spot}</div>)}
-          <JoinGame gameUuid={uuid} />
+          <JoinGame playerUuid={player ? player.uuid : null} onGameJoined={setPlayer} gameUuid={uuid}/>
       </div>
     );
 });
