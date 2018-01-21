@@ -1,6 +1,7 @@
 const request = require('supertest');
 const app = require('../app');
 const store = require('../store/gameStore');
+const { engine } = require('../engine');
 
 function graphqlQuery({ query, variables }) {
     const req = request(app)
@@ -8,6 +9,12 @@ function graphqlQuery({ query, variables }) {
         .set('Accept', 'application/json')
         .send({ query, variables })
     return req
+}
+
+function createGameStub({ uuid, players = [] }) {
+    const game = engine.createGame(uuid);
+    players.forEach((p) => {});
+    return store.save(game);
 }
 
 
@@ -38,8 +45,7 @@ describe('graphql game api', () => {
     })
 
     it('should fetch a stored game', async() => {
-        const game = { uuid: 'abc' };
-        await store.save(game);
+        await createGameStub({uuid: 'abc'});
         const response = await graphqlQuery({
             query: `{
                 game(uuid: "abc") {
@@ -49,12 +55,11 @@ describe('graphql game api', () => {
         });
         const gameData = response.body.data.game;
         // should have a uuid
-        expect(gameData).toEqual(game)
+        expect(gameData.uuid).toEqual('abc');
     })
 
     it('should join a game', async() => {
-        const game = { uuid: 'abc', players: [] };
-        await store.save(game);
+        await createGameStub({uuid: 'abc'});
         const response = await graphqlQuery({
             query: `
                 mutation joinGame($gameUuid: String!, $playerName: String!, $spot: PlayerSpot!) {

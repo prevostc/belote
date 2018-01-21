@@ -21,6 +21,11 @@ module Util {
         |> List.filter(((i, _)) => i >= start && i <= stop)
         |> List.map(((_, e)) => e);
 
+    let listFind = filter => List.fold_left((agg, e) => switch agg {
+        | None => filter(e) ? Some(e) : None
+        | Some(a) => Some(a)
+    }, None);
+
     let arrayFind = filter => Array.fold_left((agg, e) => switch agg {
         | None => filter(e) ? Some(e) : None
         | Some(a) => Some(a)

@@ -74,6 +74,20 @@ describe("Util.listSlice", () => {
   });
 });
 
+describe("Util.listFind", () => {
+  open ExpectJs;
+
+  test("Finds None", () => {
+    [1, 2, 3, 4, 5] |> Util.listFind(e => e === 12) |> expect |> toEqual(None);
+  });
+  test("Finds an element in an array", () => {
+    [1, 2, 3, 4, 5] |> Util.listFind(e => e === 4) |> expect |> toEqual(Some(4));
+  });
+  test("Finds the first element in an array", () => {
+    [(1, 1), (1, 2), (1, 3)] |> Util.listFind(((one, i)) => one === 1) |> expect |> toEqual(Some((1, 1)));
+  });
+});
+
 
 describe("Util.arrayFind", () => {
   open ExpectJs;

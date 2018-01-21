@@ -1,21 +1,23 @@
 const uuid = require('uuid/v4');
 const { PubSub, withFilter } = require('graphql-subscriptions');
-const engine = require('../engine');
+const { engine, format } = require('../engine');
+const SPOT = format.consts.SPOT;
 const gameStore = require('../store/gameStore');
 
 const pubsub = new PubSub();
 const GAME_UPDATE_TOPIC = 'GAME_TOPIC';
 const publishGameChange = (game) => {
-    pubsub.publish(GAME_UPDATE_TOPIC, {gameStateChanged: gameFormatter(game)});
+    pubsub.publish(GAME_UPDATE_TOPIC, {gameStateChanged: format.formatGame(game)});
 };
 
 // temp test game
 (function(){
     const gameUuid = "test-game";
     let game = engine.createGame(gameUuid);
-    [p, game] = engine.joinGame(game, '1', 'n', "NORTH");
-    [p, game] = engine.joinGame(game, '2', 's', "SOUTH");
-    [p, game] = engine.joinGame(game, '3', 'e', "EAST");
+    let p;
+    [p, game] = engine.joinGame(game, '1', 'n', SPOT.NORTH);
+    [p, game] = engine.joinGame(game, '2', 's', SPOT.SOUTH);
+    [p, game] = engine.joinGame(game, '3', 'e', SPOT.EAST);
     gameStore.save(game);
 })();
 
@@ -52,22 +54,20 @@ const schema = `
     type Subscription {
         gameStateChanged(uuid: String!): Game!
     }
-`
-
-const gameFormatter = game => ({ ...game, gameState: JSON.stringify(game.gameState)});
+`;
 
 const resolvers = {
     Player: {
         game: async (player) => {
             const game = await gameStore.get(player.gameUuid);
-            return gameFormatter(game);
+            return format.formatGame(game);
         }
     },
     Query: {
         game: async(ctx, args) => {
             const game = await gameStore.get(args.uuid);
             // @todo: hide sensitive info (other players cards, deck)
-            return gameFormatter(game);
+            return format.formatGame(game);
         },
     },
     Mutation: {
@@ -76,18 +76,22 @@ const resolvers = {
             // @todo: limit number of playing games
             await gameStore.save(game);
             publishGameChange(game);
-            return gameFormatter(game)
+            return format.formatGame(game)
         },
         joinGame: async(ctx, args) => {
             let gameObj = await gameStore.get(args.gameUuid);
             const playerUuid = args.playerUuid || uuid();
+            const gameSpot = SPOT[args.spot];
+            if (! gameSpot) {
+                throw new Error('Invalid spot');
+            }
             // @todo: input check
-            const [ player, game ] = engine.joinGame(gameObj, playerUuid, args.playerName, args.spot);
+            const [ player, game ] = engine.joinGame(gameObj, playerUuid, args.playerName, gameSpot);
             // @todo: detect if game changed to save and publish only when necessary
             await gameStore.save(game);
             publishGameChange(game);
             // already a player there
-            return player.uuid === playerUuid ? player : null;
+            return format.formatPlayer(player).uuid === playerUuid ? format.formatPlayer(player) : null;
         }
     },
     Subscription: {
