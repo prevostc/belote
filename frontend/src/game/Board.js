@@ -2,6 +2,7 @@ import React from 'react';
 import { graphql } from 'react-apollo';
 import {compose, pure, branch, renderComponent, lifecycle, withState} from 'recompose';
 import JoinGame from './JoinGame';
+import BidPhase from './BidPhase';
 import { gameQuery, subscribeToChange } from "../api/game";
 
 
@@ -44,10 +45,14 @@ export const Board = enhance(({ player, setPlayer, game: { uuid, phase, gameStat
     return (
       <div>
           {p}
-          <div>{phase} - {uuid}</div>
+          <div>{uuid}</div>
           <pre>{gameState}</pre>
-          {players.map(({name, uuid, spot}) => <div key={spot}>{uuid} - {name} - {spot}</div>)}
-          <JoinGame playerUuid={player ? player.uuid : null} onGameJoined={setPlayer} gameUuid={uuid}/>
+          {players.map(({name, uuid, spot, isDealer}) => <div key={spot}>{uuid} - {name} - {spot}{isDealer ? ' - DEALER': ''}</div>)}
+          { phase === 'INITIAL'
+              ? <JoinGame playerUuid={player ? player.uuid : null} onGameJoined={setPlayer} gameUuid={uuid}/>
+              : <BidPhase/>
+          }
+
       </div>
     );
 });

@@ -6,6 +6,11 @@ describe("Engine API tests", () => {
 
   let game = Engine.createGame("1234");
 
+  let (p1, g1) = Engine.joinGame(game, "1", "a", Game.North);
+  let (p2, g2) = Engine.joinGame(g1, "2", "b", Game.South);
+  let (p3, g3) = Engine.joinGame(g2, "3", "c", Game.East);
+  let (p4, g4) = Engine.joinGame(g3, "4", "d", Game.West);
+
   test("Creates a game state", () => {
     game.players |> expect |> toEqual([]);
   });
@@ -77,6 +82,14 @@ describe("Engine API tests", () => {
         game.gameState.phase, g1.gameState.phase, g2.gameState.phase, g3.gameState.phase, g4.gameState.phase
     ) |> expect |> toEqual((
         Game.Initial, Game.Initial, Game.Initial, Game.Initial, Game.Bidding
+    ));
+  });
+
+  test("Checks who is the dealer", () => {
+    (
+        Engine.isDealer("1", g4), Engine.isDealer("2", g4), Engine.isDealer("3", g4), Engine.isDealer("4", g4)
+    ) |> expect |> toEqual((
+        true, false, false, false
     ));
   });
 });

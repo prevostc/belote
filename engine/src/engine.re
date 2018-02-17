@@ -1,27 +1,29 @@
 open Game;
 open Util;
 
+type uuid = string;
+
 type playerState = {
-    uuid: string,
+    uuid: uuid,
     name: string,
     spot: Game.player,
-    gameUuid: string
+    gameUuid: uuid
 };
 
 type gameState = {
-    uuid: string,
+    uuid: uuid,
     players: list(playerState),
     gameState: Game.state,
 };
 
-let createGame = (uuid): gameState => {
+let createGame = (uuid: uuid): gameState => {
     uuid: uuid,
     players: [],
     gameState: Game.initialState()
 };
 
 
-let joinGame = (game: gameState, playerUuid: string, playerName: string, spot: Game.player): (playerState, gameState) => {
+let joinGame = (game: gameState, playerUuid: uuid, playerName: string, spot: Game.player): (playerState, gameState) => {
     let newPlayer: playerState = {
         uuid: playerUuid,
         name: playerName,
@@ -50,4 +52,19 @@ let joinGame = (game: gameState, playerUuid: string, playerName: string, spot: G
             players: players
         }
     );
-}
+};
+
+let getCards = (playerUuid: uuid, game: gameState) => {
+    let player = game.players |> Util.listFind((p: playerState) => p.uuid === playerUuid);
+    switch (player) {
+        | Some(p) => game.gameState.hands |> Game.PlayerMap.find(p.spot)
+        | None => []
+    };
+};
+let isDealer = (playerUuid: uuid, game: gameState) => {
+    let player = game.players |> Util.listFind((p: playerState) => p.uuid === playerUuid);
+    switch (player) {
+        | Some(p) => p.spot === game.gameState.dealer
+        | None => false
+    };
+};

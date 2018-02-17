@@ -9,6 +9,8 @@ export const gameFragment = gql`
             uuid
             spot
             name
+            
+            isDealer
         }
     }
 `;

@@ -31,9 +31,22 @@ const schema = `
 
     type Game {
         uuid: String!
-        gameState: String!
         players: [Player]!
         phase: String!
+        
+        gameState: String!
+    }
+    
+    enum CardColor {
+        SPADES
+        HEARTS
+        DIAMONDS 
+        CLUBS
+    }
+    
+    type Card {
+        color: CardColor!
+        motif: Int!
     }
     
     type Player {
@@ -41,6 +54,9 @@ const schema = `
         name: String!
         spot: PlayerSpot!
         game: Game!
+        
+        isDealer: Boolean!
+        cards: [Card]!
     }
     
     type Query {
@@ -62,7 +78,16 @@ const resolvers = {
         game: async (player) => {
             const game = await gameStore.get(player.gameUuid);
             return format.formatGame(game);
-        }
+        },
+        isDealer: async (player) => {
+            const game = await gameStore.get(player.gameUuid);
+            return engine.isDealer(player.uuid, game);
+        },
+        cards: async (player) => {
+            const game = await gameStore.get(player.gameUuid);
+            const cards = engine.getCards(player.uuid, game);
+            return format.formatCards(cards);
+        },
     },
     Query: {
         game: async(ctx, args) => {
@@ -83,7 +108,7 @@ const resolvers = {
             let gameObj = await gameStore.get(args.gameUuid);
             const playerUuid = args.playerUuid || uuid();
             const gameSpot = SPOT[args.spot];
-            if (! gameSpot) {
+            if (gameSpot === undefined) {
                 throw new Error('Invalid spot');
             }
             // @todo: input check

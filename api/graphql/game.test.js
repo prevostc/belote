@@ -1,7 +1,8 @@
 const request = require('supertest');
 const app = require('../app');
 const store = require('../store/gameStore');
-const { engine } = require('../engine');
+const { engine, format } = require('../engine');
+const SPOT = format.consts.SPOT;
 
 function graphqlQuery({ query, variables }) {
     const req = request(app)
@@ -12,8 +13,11 @@ function graphqlQuery({ query, variables }) {
 }
 
 function createGameStub({ uuid, players = [] }) {
-    const game = engine.createGame(uuid);
-    players.forEach((p) => {});
+    let game = engine.createGame(uuid);
+    game = players.reduce((game, { uuid: playerUuid, spot, name }) => {
+        const [player, g] = engine.joinGame(game, playerUuid, name, spot);
+        return g
+    }, game);
     return store.save(game);
 }
 
@@ -36,6 +40,7 @@ describe('graphql game api', () => {
                 name: "TEST",
             },
         });
+        expect(response.body.errors).not.toBeDefined();
         const gameData = response.body.data.createGame;
         // should have a uuid
         expect(gameData.uuid.length).toEqual(36)
@@ -45,18 +50,38 @@ describe('graphql game api', () => {
     })
 
     it('should fetch a stored game', async() => {
-        await createGameStub({uuid: 'abc'});
+        await createGameStub({
+            uuid: 'abc',
+            players: [
+                {uuid: '1', spot: SPOT.NORTH, name: 'a' },
+                {uuid: '2', spot: SPOT.SOUTH, name: 'b' },
+                {uuid: '3', spot: SPOT.EAST, name: 'c' },
+                {uuid: '4', spot: SPOT.WEST, name: 'd' },
+            ]
+        });
         const response = await graphqlQuery({
             query: `{
                 game(uuid: "abc") {
-                   uuid
+                    uuid
+                    players {
+                        uuid
+                        isDealer
+                        cards {
+                            color
+                            motif
+                        }
+                    }
+                    phase
                 }
             }`,
         });
+        expect(response.body.errors).not.toBeDefined();
         const gameData = response.body.data.game;
-        // should have a uuid
         expect(gameData.uuid).toEqual('abc');
-    })
+        expect(gameData.players.length).toEqual(4);
+        expect(gameData.players[0].isDealer).toEqual(true);
+        expect(gameData.players[0].cards.length).toEqual(8);
+    });
 
     it('should join a game', async() => {
         await createGameStub({uuid: 'abc'});
@@ -71,6 +96,11 @@ describe('graphql game api', () => {
                             uuid
                             players {
                                 uuid
+                                isDealer
+                                cards {
+                                    motif
+                                    color
+                                }
                             }
                             phase
                        }
@@ -82,6 +112,7 @@ describe('graphql game api', () => {
                 spot: "EAST",
             }
         });
+        expect(response.body.errors).not.toBeDefined();
         expect(response.body.data.joinGame.name).toEqual('Mitch');
         expect(response.body.data.joinGame.spot).toEqual('EAST');
         expect(response.body.data.joinGame.uuid.length).toEqual(36);
