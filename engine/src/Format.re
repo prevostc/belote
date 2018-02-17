@@ -1,6 +1,3 @@
-open Game;
-open Util;
-open Deck;
 
 /*
 @todo: refactor this
@@ -8,21 +5,19 @@ this file links the low level reasonml world and high level js world
 ReasonML works with arrays of ids and ids, that's not a great api
 We should create a proper api mapping file that does not embeed business logic
 */
-[@bs.val] external json_stringify : 'a => string = "JSON.stringify";
-
 let consts = [%bs.obj {
     "SPOT": [%bs.obj {
-        "NORTH": Game.North,
-        "EAST": Game.East,
-        "SOUTH": Game.South,
-        "WEST": Game.West
+        "NORTH": Player.North,
+        "EAST": Player.East,
+        "SOUTH": Player.South,
+        "WEST": Player.West
     }],
     "PHASE": [%bs.obj {
-        "INITIAL": Game.Initial,
-        "DEALING": Game.Dealing,
-        "BIDDING": Game.Bidding,
-        "PLAYING": Game.Playing,
-        "END": Game.End
+        "INITIAL": Phase.Initial,
+        "DEALING": Phase.Dealing,
+        "BIDDING": Phase.Bidding,
+        "PLAYING": Phase.Playing,
+        "END": Phase.End
     }],
     "CARD_COLOR": [%bs.obj {
         "SPADES": Deck.Spades,
@@ -32,19 +27,19 @@ let consts = [%bs.obj {
     }]
 }];
 
-let formatSpot = (s: Game.player) => switch s {
-    | Game.North => "NORTH"
-    | Game.East => "EAST"
-    | Game.South => "SOUTH"
-    | Game.West => "WEST"
+let formatSpot = (s: Player.player) => switch s {
+    | Player.North => "NORTH"
+    | Player.East => "EAST"
+    | Player.South => "SOUTH"
+    | Player.West => "WEST"
 };
 
-let formatPhase = (p: Game.phase) => switch p {
-    | Game.Initial => "INITIAL"
-    | Game.Dealing => "DEALING"
-    | Game.Bidding => "BIDDING"
-    | Game.Playing => "PLAYING"
-    | Game.End => "END"
+let formatPhase = (p: Phase.phase) => switch p {
+    | Phase.Initial => "INITIAL"
+    | Phase.Dealing => "DEALING"
+    | Phase.Bidding => "BIDDING"
+    | Phase.Playing => "PLAYING"
+    | Phase.End => "END"
 };
 
 let formatCardColor = (c: Deck.color) => switch c {
@@ -62,13 +57,15 @@ let formatPlayer = (p: Engine.playerState) => [%bs.obj {
     "name": p.name,
     "gameUuid": p.gameUuid
 }];
+
+
+/* @todo: format hands, bids, deck and scores */
 let formatGame = (g: Engine.gameState) => {
     [%bs.obj {
         "uuid": g.uuid,
-        "gameState": g.gameState |> json_stringify,
         "players": g.players |> List.map(formatPlayer) |> Array.of_list,
-        "phase": g.gameState.phase |> formatPhase,
-        "dealer": g.gameState.dealer |> formatSpot
+        "phase": g.phase |> formatPhase,
+        "dealer": g.dealer |> formatSpot
     }];
 };
 let formatCards = cards => cards |> List.map((c: Deck.card) => {
@@ -77,3 +74,13 @@ let formatCards = cards => cards |> List.map((c: Deck.card) => {
        "motif": 12
     }]
 }) |> Array.of_list;
+
+/*
+let formatError = (error: Engine.error) => switch (error) {
+    | Engine.InvalidBid(Bid.Bid(player, value, color)) => Printf.sprintf(
+        {| Player %s can not bid %d %s at the moment |},
+        formatSpot(player),
+        value,
+        formatColor(color)
+    )
+};*/
