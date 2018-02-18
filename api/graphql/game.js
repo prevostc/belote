@@ -2,6 +2,7 @@ const uuid = require('uuid/v4');
 const { PubSub, withFilter } = require('graphql-subscriptions');
 const { engine, format } = require('../engine');
 const SPOT = format.consts.SPOT;
+const CARD_COLOR = format.consts.CARD_COLOR;
 const gameStore = require('../store/gameStore');
 
 const pubsub = new PubSub();
@@ -14,7 +15,7 @@ const publishGameChange = (game) => {
 (function(){
     const gameUuid = "test-game";
     let game = engine.createGame(gameUuid);
-    game = engine.raiseErrorOrUnboxState(engine.joinGame('1', 'n', SPOT.NORTH, game));
+    game = engine.raiseErrorOrUnboxState(engine.joinGame('1', 'n', SPOT.WEST, game));
     game = engine.raiseErrorOrUnboxState(engine.joinGame('2', 's', SPOT.SOUTH, game));
     game = engine.raiseErrorOrUnboxState(engine.joinGame('3', 'e', SPOT.EAST, game));
     gameStore.save(game);
@@ -32,6 +33,7 @@ const schema = `
         uuid: String!
         players: [Player]!
         phase: String!
+        bids: [Bid]!
     }
     
     enum CardColor {
@@ -39,6 +41,13 @@ const schema = `
         HEARTS
         DIAMONDS 
         CLUBS
+    }
+    
+    type Bid {
+        isPass: Boolean!
+        value: Int
+        color: CardColor
+        player: Player!
     }
     
     type Card {
@@ -63,6 +72,8 @@ const schema = `
     type Mutation {
         createGame(name: String): Game!
         joinGame(gameUuid: String!, playerUuid: String, playerName: String!, spot: PlayerSpot!): Player!
+        bid(gameUuid: String!, playerUuid: String, value: Int!, color: CardColor!): Game!
+        pass(gameUuid: String!, playerUuid: String): Game!
     }
     
     type Subscription {
@@ -86,6 +97,14 @@ const resolvers = {
             return format.formatCards(cards);
         },
     },
+    Bid: {
+        player: async (bid) => {
+            const { gameUuid, playerUuid } = bid;
+            const gameObj = await gameStore.get(gameUuid);
+            const [spot, player] = engine.getPlayerAndSpot(playerUuid, gameObj);
+            return format.formatPlayer(gameUuid, spot, player);
+        },
+    },
     Query: {
         game: async(ctx, args) => {
             const game = await gameStore.get(args.uuid);
@@ -102,24 +121,48 @@ const resolvers = {
             return format.formatGame(game)
         },
         joinGame: async(ctx, args) => {
-            const gameUuid = args.gameUuid;
-            let gameObj = await gameStore.get(gameUuid);
-            const playerUuid = args.playerUuid || uuid();
-            const gameSpot = SPOT[args.spot];
-            if (gameSpot === undefined) {
-                throw new Error('Invalid spot');
-            }
             // @todo: input check
-            const res = engine.joinGame(playerUuid, args.playerName, gameSpot, gameObj);
+            const { gameUuid, playerName, spot } = args;
+            const playerUuid = args.playerUuid || uuid();
+            let gameObj = await gameStore.get(gameUuid);
+            const gameSpot = SPOT[spot];
+
+            const res = engine.joinGame(playerUuid, playerName, gameSpot, gameObj);
             gameObj = engine.raiseErrorOrUnboxState(res);
 
-            // @todo: detect if game changed to save and publish only when necessary
             await gameStore.save(gameObj);
             publishGameChange(gameObj);
 
             // return the new player object
-            const [spot, player] = engine.getPlayerAndSpot(playerUuid, gameObj);
-            return format.formatPlayer(gameUuid, spot, player);
+            const [newSpot, player] = engine.getPlayerAndSpot(playerUuid, gameObj);
+            return format.formatPlayer(gameUuid, newSpot, player);
+        },
+        bid: async(ctx, args) => {
+            // @todo: input check
+            const { gameUuid, playerUuid, value, color} = args;
+            let gameObj = await gameStore.get(gameUuid);
+            const gameColor = CARD_COLOR[color];
+
+            const res = engine.bid(playerUuid, value, gameColor, gameObj);
+            gameObj = engine.raiseErrorOrUnboxState(res);
+
+            await gameStore.save(gameObj);
+            publishGameChange(gameObj);
+
+            return format.formatGame(gameObj);
+        },
+        pass: async(ctx, args) => {
+            // @todo: input check
+            const { gameUuid, playerUuid } = args;
+            let gameObj = await gameStore.get(gameUuid);
+
+            const res = engine.pass(playerUuid, gameObj);
+            gameObj = engine.raiseErrorOrUnboxState(res);
+
+            await gameStore.save(gameObj);
+            publishGameChange(gameObj);
+
+            return format.formatGame(gameObj);
         }
     },
     Subscription: {

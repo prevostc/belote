@@ -8,6 +8,7 @@ let nextPlayer = (player) => switch player {
     | West => North
 };
 
+/* @todo: using a map is kind of annoying when you sometimes want to search by uuid and sometimes by spot */
 module PlayerMap = Map.Make({
     type t = player;
     let playerToNum = player => switch player {

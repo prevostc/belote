@@ -56,6 +56,22 @@ let formatPlayer = (gameUuid, spot: Player.player, p: Engine.playerState) => [%b
     "spot": spot |> formatSpot
 }];
 
+let formatBid = (gameUuid, playerUuid, bid: Bid.bid) => switch (bid) {
+    | Bid.Pass(_) => [%bs.obj {
+        "isPass": true,
+        "value": Js.Nullable.null,
+        "color": Js.Nullable.null,
+        "playerUuid": playerUuid,
+        "gameUuid": gameUuid
+    }]
+    | Bid.Bid(_, v, c) => [%bs.obj {
+        "isPass": false,
+        "value": Js.Nullable.return(v),
+        "color": Js.Nullable.return(formatCardColor(c)),
+        "playerUuid": playerUuid,
+        "gameUuid": gameUuid
+    }]
+};
 
 /* @todo: format hands, bids, deck and scores */
 let formatGame = (g: Engine.gameState) => {
@@ -64,6 +80,14 @@ let formatGame = (g: Engine.gameState) => {
         "players": g.players
             |> Player.PlayerMap.bindings
             |> List.map(((k: Player.player, v: Engine.playerState)) => formatPlayer(g.uuid, k, v))
+            |> Array.of_list,
+        "bids": g.bids
+            |> List.map((b: Bid.bid) => {
+                let player = switch (b) {
+                    | Bid.Bid(p, _, _) | Pass(p) => g.players |> Player.PlayerMap.find(p)
+                };
+                formatBid(g.uuid, player.uuid, b)
+            })
             |> Array.of_list,
         "phase": g.phase |> formatPhase,
         "dealer": g.dealer |> formatSpot
@@ -75,13 +99,3 @@ let formatCards = cards => cards |> List.map((c: Deck.card) => {
        "motif": 12
     }]
 }) |> Array.of_list;
-
-/*
-let formatError = (error: Engine.error) => switch (error) {
-    | Engine.InvalidBid(Bid.Bid(player, value, color)) => Printf.sprintf(
-        {| Player %s can not bid %d %s at the moment |},
-        formatSpot(player),
-        value,
-        formatColor(color)
-    )
-};*/

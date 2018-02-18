@@ -130,7 +130,7 @@ describe("Engine bid", () => {
     err |> expect |> toEqual(
         Engine.ActionError(
             Engine.InvalidBid(
-                Bid.Bid(Player.East, 80, Deck.Diamonds)
+                Bid.ValueNotHigher(80, 80)
             )
         )
     );
