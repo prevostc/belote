@@ -44,10 +44,21 @@ const enhance = compose(
 
 export const Board = enhance(({ player, setPlayer, game: { uuid, phase, players }}) => {
     const p = player ? <div>{player.uuid} - {player.name} - {player.spot}</div> : <div></div>;
+    const renderPhase = (phase) => {
+        switch (phase) {
+            case 'INITIAL':
+                return <JoinGame playerUuid={player ? player.uuid : null} onGameJoined={setPlayer} gameUuid={uuid}/>;
+            case 'BIDDING':
+                return <BidPhase playerUuid={player ? player.uuid : null} gameUuid={uuid} />
+            default:
+                return <div>Phase {phase}</div>
+        }
+    };
     return (
       <div>
           <h1>You are</h1>
           {p}
+          <h2>Debug player switch</h2>
           <DebugPlayerSwitch setPlayer={setPlayer} />
           <h1>Game</h1>
           <div>{uuid}</div>
@@ -55,11 +66,7 @@ export const Board = enhance(({ player, setPlayer, game: { uuid, phase, players 
           <ul>
             {players.map(({name, uuid, spot, isDealer}) => <li key={spot}>{uuid} - {name} - {spot}{isDealer ? ' - DEALER': ''}</li>)}
           </ul>
-          { phase === 'INITIAL'
-              ? <JoinGame playerUuid={player ? player.uuid : null} onGameJoined={setPlayer} gameUuid={uuid}/>
-              : <BidPhase playerUuid={player ? player.uuid : null} gameUuid={uuid} />
-          }
-
+          { renderPhase(phase) }
       </div>
     );
 });
