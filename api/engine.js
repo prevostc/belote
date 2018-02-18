@@ -1,4 +1,4 @@
-const engine = require('../lib/js/engine/src/engine.bs');
-const format = require('../lib/js/engine/src/format.bs');
+const engine = require('../lib/js/engine/src/Engine.bs');
+const format = require('../lib/js/engine/src/Format.bs');
 
 module.exports = { engine, format };
