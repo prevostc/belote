@@ -3,7 +3,6 @@ import gql from "graphql-tag";
 export const gameFragment = gql`
     fragment gameFragment on Game {
         uuid
-        gameState
         phase
         players {
             uuid
@@ -69,11 +68,7 @@ export const subscribeToChange = (query) => ({uuid}) => {
             const newGame = subscriptionData.data.gameStateChanged;
             return {
                 ...prev,
-                game: {
-                    ...prev.game,
-                    gameState: newGame.gameState,
-                    players: newGame.players,
-                }
+                game: newGame
             };
         }
     });

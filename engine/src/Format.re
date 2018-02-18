@@ -49,13 +49,11 @@ let formatCardColor = (c: Deck.color) => switch c {
     | Deck.Clubs => "CLUBS"
 };
 
-let getUuid = (o: Engine.gameState) => o.uuid;
-
-let formatPlayer = (p: Engine.playerState) => [%bs.obj {
+let formatPlayer = (gameUuid, spot: Player.player, p: Engine.playerState) => [%bs.obj {
     "uuid": p.uuid,
-    "spot": p.spot |> formatSpot,
+    "gameUuid": gameUuid,
     "name": p.name,
-    "gameUuid": p.gameUuid
+    "spot": spot |> formatSpot
 }];
 
 
@@ -63,7 +61,10 @@ let formatPlayer = (p: Engine.playerState) => [%bs.obj {
 let formatGame = (g: Engine.gameState) => {
     [%bs.obj {
         "uuid": g.uuid,
-        "players": g.players |> List.map(formatPlayer) |> Array.of_list,
+        "players": g.players
+            |> Player.PlayerMap.bindings
+            |> List.map(((k: Player.player, v: Engine.playerState)) => formatPlayer(g.uuid, k, v))
+            |> Array.of_list,
         "phase": g.phase |> formatPhase,
         "dealer": g.dealer |> formatSpot
     }];

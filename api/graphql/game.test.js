@@ -15,8 +15,7 @@ function graphqlQuery({ query, variables }) {
 function createGameStub({ uuid, players = [] }) {
     let game = engine.createGame(uuid);
     game = players.reduce((game, { uuid: playerUuid, spot, name }) => {
-        const [player, g] = engine.joinGame(game, playerUuid, name, spot);
-        return g
+        return engine.raiseErrorOrUnboxState(engine.joinGame(playerUuid, name, spot, game));
     }, game);
     return store.save(game);
 }
@@ -65,6 +64,7 @@ describe('graphql game api', () => {
                     uuid
                     players {
                         uuid
+                        spot
                         isDealer
                         cards {
                             color
@@ -79,8 +79,10 @@ describe('graphql game api', () => {
         const gameData = response.body.data.game;
         expect(gameData.uuid).toEqual('abc');
         expect(gameData.players.length).toEqual(4);
-        expect(gameData.players[0].isDealer).toEqual(true);
-        expect(gameData.players[0].cards.length).toEqual(8);
+        const northPlayer = gameData.players.find(p => p.spot === "NORTH")
+        expect(northPlayer.isDealer).toEqual(true);
+        expect(northPlayer.spot).toEqual("NORTH");
+        expect(northPlayer.cards.length).toEqual(8);
     });
 
     it('should join a game', async() => {

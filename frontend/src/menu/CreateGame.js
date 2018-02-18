@@ -9,7 +9,6 @@ const enhance = compose(
             mutation createGame($name: String!) {
                 createGame(name: $name) {
                     uuid
-                    gameState
                     players {
                         uuid
                         name

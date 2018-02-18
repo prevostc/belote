@@ -40,13 +40,12 @@ const enhance = compose(
     pure
 );
 
-export const Board = enhance(({ player, setPlayer, game: { uuid, phase, gameState, players }}) => {
+export const Board = enhance(({ player, setPlayer, game: { uuid, phase, players }}) => {
     const p = player ? <div>{player.uuid} - {player.name} - {player.spot}</div> : <div></div>;
     return (
       <div>
           {p}
           <div>{uuid}</div>
-          <pre>{gameState}</pre>
           {players.map(({name, uuid, spot, isDealer}) => <div key={spot}>{uuid} - {name} - {spot}{isDealer ? ' - DEALER': ''}</div>)}
           { phase === 'INITIAL'
               ? <JoinGame playerUuid={player ? player.uuid : null} onGameJoined={setPlayer} gameUuid={uuid}/>

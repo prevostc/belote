@@ -14,10 +14,9 @@ const publishGameChange = (game) => {
 (function(){
     const gameUuid = "test-game";
     let game = engine.createGame(gameUuid);
-    let p;
-    [p, game] = engine.joinGame(game, '1', 'n', SPOT.NORTH);
-    [p, game] = engine.joinGame(game, '2', 's', SPOT.SOUTH);
-    [p, game] = engine.joinGame(game, '3', 'e', SPOT.EAST);
+    game = engine.raiseErrorOrUnboxState(engine.joinGame('1', 'n', SPOT.NORTH, game));
+    game = engine.raiseErrorOrUnboxState(engine.joinGame('2', 's', SPOT.SOUTH, game));
+    game = engine.raiseErrorOrUnboxState(engine.joinGame('3', 'e', SPOT.EAST, game));
     gameStore.save(game);
 })();
 
@@ -33,8 +32,6 @@ const schema = `
         uuid: String!
         players: [Player]!
         phase: String!
-        
-        gameState: String!
     }
     
     enum CardColor {
@@ -53,8 +50,8 @@ const schema = `
         uuid: String!
         name: String!
         spot: PlayerSpot!
-        game: Game!
         
+        game: Game!
         isDealer: Boolean!
         cards: [Card]!
     }
@@ -65,7 +62,7 @@ const schema = `
     
     type Mutation {
         createGame(name: String): Game!
-        joinGame(gameUuid: String!, playerUuid: String, playerName: String!, spot: PlayerSpot!): Player
+        joinGame(gameUuid: String!, playerUuid: String, playerName: String!, spot: PlayerSpot!): Player!
     }
     
     type Subscription {
@@ -105,19 +102,24 @@ const resolvers = {
             return format.formatGame(game)
         },
         joinGame: async(ctx, args) => {
-            let gameObj = await gameStore.get(args.gameUuid);
+            const gameUuid = args.gameUuid;
+            let gameObj = await gameStore.get(gameUuid);
             const playerUuid = args.playerUuid || uuid();
             const gameSpot = SPOT[args.spot];
             if (gameSpot === undefined) {
                 throw new Error('Invalid spot');
             }
             // @todo: input check
-            const [ player, game ] = engine.joinGame(gameObj, playerUuid, args.playerName, gameSpot);
+            const res = engine.joinGame(playerUuid, args.playerName, gameSpot, gameObj);
+            gameObj = engine.raiseErrorOrUnboxState(res);
+
             // @todo: detect if game changed to save and publish only when necessary
-            await gameStore.save(game);
-            publishGameChange(game);
-            // already a player there
-            return format.formatPlayer(player).uuid === playerUuid ? format.formatPlayer(player) : null;
+            await gameStore.save(gameObj);
+            publishGameChange(gameObj);
+
+            // return the new player object
+            const [spot, player] = engine.getPlayerAndSpot(playerUuid, gameObj);
+            return format.formatPlayer(gameUuid, spot, player);
         }
     },
     Subscription: {
