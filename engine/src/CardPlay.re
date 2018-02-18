@@ -9,30 +9,8 @@ type error =
 ;
 type cardPlayResult = ValidCardPlay | InvalidCardPlay(error);
 
-/*
- * utility function: apply same function n times
- * applyN(3, f, x) => f(f(f(x)))
- */
-let rec applyN = (n, f, x) => n <= 0 ? x : applyN(n - 1, f, f(x));
-
 /* asked color is the first color played */
 let getAskedColor = (table: list(Deck.card)) => (table |> List.hd).color;
-
-/* true if the player team is currently winning the table */
-let isTeamWinningTable = (trump: Deck.color, table: list(Deck.card)) => {
-    let l = table |> List.length;
-    if (l < 2) {
-        false
-    } else {
-        let winningCard = table |> CardOrder.getWinningCard(trump);
-        let teamCard = List.nth(table, l - 2);
-        switch (winningCard) {
-            /* team is winning */
-            | Some(c) => Deck.cardEquals(c, teamCard)
-            | None => false
-        }
-    }
-};
 
 /* card playing business rules, yes it's that complex... */
 let cardPlayValidation = (
@@ -46,7 +24,7 @@ let cardPlayValidation = (
     let cardInHand = hand |> List.exists(c => Deck.cardEquals(c, card));
     let tableIsFull = (table |> List.length) === 4;
     let tableIsEmpty = (table |> List.length) === 0;
-    let nextToPlay = applyN(table |> List.length, Player.nextPlayer, first);
+    let nextToPlay = FnUtil.applyN(table |> List.length, Player.nextPlayer, first);
 
     let validateMustPlayTrump = () => {
         let highestTrump = table |> CardOrder.getHighestTrump(trump);
@@ -112,7 +90,7 @@ let cardPlayValidation = (
             /* you have some trump, rules apply*/
             } else if (hasTrump) {
                 /* team is winning, can play anything */
-                if (table |> isTeamWinningTable(trump)) {
+                if (table |> TurnWinner.isTeamWinningTable(trump)) {
                     ValidCardPlay
 
                 /* team is not winning, you have trump and must play it*/

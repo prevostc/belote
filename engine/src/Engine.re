@@ -18,6 +18,7 @@ type gameState = {
     scores: list(Score.score),
 
     /* playing state */
+    graveyard: Player.TeamMap.t(list(Deck.card)),
     first: Player.player,
     table: list(Deck.card),
     trump: Deck.color,
@@ -38,18 +39,23 @@ let createGame = (uuid: gameUuid): gameState => {
         deck: Deck.newDeck(),
         scores: [],
 
+        graveyard: Player.TeamMap.empty
+            |> Player.TeamMap.add(NorthSouth, [])
+            |> Player.TeamMap.add(EastWest, []),
         first: Player.nextPlayer(Player.North),
         table: [],
         trump: Deck.Spades,
     };
 };
 
+/* @todo actions are able to trigger events, the split is not that clear, maybe events are useless */
 type action =
       LeaveGame(playerUuid)
     | JoinGame(playerUuid, playerName, Player.player)
-    | StartGame
+    | FourthPlayerJoined
     | MakeBid(Bid.bid)
     | PlayCard(Player.player, Deck.card)
+    | RoundEnded
 ;
 type error = InvalidJoinGame | InvalidBid(Bid.error) | InvalidCardPlay(CardPlay.error);
 type actionResult = State(gameState) | ActionError(error);
@@ -107,13 +113,13 @@ let rec dispatch = (action: action, state: gameState): actionResult => {
 
                 /* start game automatically if 4 players joined */
                 let newGameState = (stateWithNewPlayer.players |> Player.PlayerMap.cardinal) === 4
-                    ? raiseErrorOrUnboxState(dispatch(StartGame, stateWithNewPlayer)) : stateWithNewPlayer;
+                    ? raiseErrorOrUnboxState(dispatch(FourthPlayerJoined, stateWithNewPlayer)) : stateWithNewPlayer;
 
                 State(newGameState)
             }
         }
 
-        | StartGame => {
+        | FourthPlayerJoined => {
             /* @todo: shuffle + cut does not make any sense when it's a machine dealing */
             let rnd = state.deck |> List.length |> Random.int;
             State({
@@ -138,9 +144,39 @@ let rec dispatch = (action: action, state: gameState): actionResult => {
         | PlayCard(p, c) => {
             let playerHand = state.hands |> Player.PlayerMap.find(p);
             switch (c |> CardPlay.cardPlayValidation(state.first, state.trump, state.table, playerHand, p)) {
-                | CardPlay.ValidCardPlay => State(state)
+                | CardPlay.ValidCardPlay => {
+                    let newTable = state.table @ [c];
+                    let turnIsOver = (newTable |> List.length) === 4;
+                    if (turnIsOver) {
+                        let winningPlayer = TurnWinner.getWinningPlayer(state.first, state.trump, newTable);
+                        let winningTeam = winningPlayer |> Player.getTeam;
+                        let winningTeamGraveyard = state.graveyard |> Player.TeamMap.find(winningTeam);
+                        let newState = {
+                            ...state,
+                            table: [],
+                            hands: state.hands |> Player.PlayerMap.add(p, playerHand |> List.filter(card => !Deck.cardEquals(c, card))),
+                            graveyard: state.graveyard |> Player.TeamMap.add(winningTeam, winningTeamGraveyard @ newTable),
+                            first: winningPlayer
+                        };
+                        /* round is over, dispatch an event*/
+                        State(
+                            ((state.hands |> Player.PlayerMap.find(Player.North) |> List.length) <= 0)
+                                ? raiseErrorOrUnboxState(dispatch(RoundEnded, newState)) : newState
+                        );
+                    } else {
+                        State({
+                            ...state,
+                            table: newTable,
+                            hands: state.hands |> Player.PlayerMap.add(p, playerHand |> List.filter(card => !Deck.cardEquals(c, card)))
+                        })
+                    }
+                }
                 | CardPlay.InvalidCardPlay(e) => ActionError(InvalidCardPlay(e))
             }
+        }
+
+        | RoundEnded => {
+            State(state)
         }
     };
 };
