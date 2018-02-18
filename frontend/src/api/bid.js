@@ -35,7 +35,7 @@ export const bidMutation = gql`
 `;
 export const passMutation = gql`
     mutation pass($gameUuid: String!, $playerUuid: String!) {
-        bid(gameUuid: $gameUuid, playerUuid: $playerUuid) {
+        pass(gameUuid: $gameUuid, playerUuid: $playerUuid) {
             bids {
                 ...bidFragment
             }
@@ -46,19 +46,21 @@ export const passMutation = gql`
 
 // write the newly created project to the query cache
 // http://dev.apollodata.com/core/read-and-write.html#updating-the-cache-after-a-mutation
-export const bidMutationUpdate = ({ uuid }) => (proxy, { data: { bid } }) => {
-    const variables = { uuid };
-    const query = bidMutation
+export const bidMutationUpdate = ({ gameUuid }) => (proxy, { data: { bid } }) => {
+    const variables = { gameUuid };
+    const query = BidsQuery
     const data = proxy.readQuery({ query, variables })
+    data.game.bids = bid.bids;
     proxy.writeQuery({ query, variables, data })
 };
 
 // write the newly created project to the query cache
 // http://dev.apollodata.com/core/read-and-write.html#updating-the-cache-after-a-mutation
-export const passMutationUpdate = ({ uuid }) => (proxy, { data: { pass } }) => {
-    const variables = { uuid };
-    const query = passMutation
+export const passMutationUpdate = ({ gameUuid }) => (proxy, { data: { pass } }) => {
+    const variables = { gameUuid };
+    const query = BidsQuery
     const data = proxy.readQuery({ query, variables })
+    data.game.bids = pass.bids;
     proxy.writeQuery({ query, variables, data })
 };
 

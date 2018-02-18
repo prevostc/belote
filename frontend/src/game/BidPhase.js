@@ -1,7 +1,7 @@
 import React from 'react';
 import {graphql} from "react-apollo/index";
 import {branch, compose, lifecycle, pure, renderComponent, withHandlers, withState} from "recompose";
-import {BidsQuery, bidMutation, bidMutationUpdate, subscribeToChange} from "../api/bid";
+import {BidsQuery, bidMutation, bidMutationUpdate, subscribeToChange, passMutation, passMutationUpdate} from "../api/bid";
 
 // @todo: get those from the engine lib
 const colors = ['SPADES', 'HEARTS', 'DIAMONDS', 'CLUBS'];
@@ -9,12 +9,11 @@ const colors = ['SPADES', 'HEARTS', 'DIAMONDS', 'CLUBS'];
 const enhance = compose(
     graphql(BidsQuery, {
         props: ({ data }) => {
-            console.log("BidsQuery",data)
             const { loading, error, game } = data;
             return ({
                 loading,
                 error,
-                game,
+                bids: game ? game.bids : [],
                 subscribeToChange: subscribeToChange(data),
             })
         },
@@ -25,14 +24,24 @@ const enhance = compose(
     graphql(bidMutation, {
         name: 'bid',
         props: ({ bid, ownProps: { gameUuid, playerUuid } }) => ({
-            bid: async (value, color) => {
+            bid: (value, color) => {
                 const variables = { gameUuid, playerUuid, value, color };
-                console.log("bidMutation: variables",variables)
-                const data = await bid({
+                return bid({
                     variables,
                     update: bidMutationUpdate({ gameUuid, playerUuid }),
                 });
-                console.log("bidMutation: data",data)
+            }
+        }),
+    }),
+    graphql(passMutation, {
+        name: 'pass',
+        props: ({ pass, ownProps: { gameUuid, playerUuid } }) => ({
+            pass: () => {
+                const variables = { gameUuid, playerUuid };
+                return pass({
+                    variables,
+                    update: passMutationUpdate({ gameUuid, playerUuid }),
+                });
             }
         }),
     }),
@@ -63,12 +72,18 @@ const enhance = compose(
 );
 
 
-export const BidPhase = enhance((props) => {
-    console.log(props)
-    const {value, onValueChange, color, onColorChange, bid, pass} = props;
+export const BidPhase = enhance(({value, onValueChange, color, onColorChange, bid, pass, bids}) => {
     return (
       <div>
           <h1>Bidding</h1>
+          <h2>Bids</h2>
+          <ol>
+            {bids.map((b, i) => b.isPass
+                ? <li key={i}>{b.player.spot}: Pass</li>
+                : <li key={i}>{b.player.spot}: Bid {b.value} {b.color}</li>
+            )}
+          </ol>
+          <h2>New Bid</h2>
           <label>
               <span>Value :</span>
               <input name="value" placeholder="value" type="number" onChange={onValueChange} value={value} />

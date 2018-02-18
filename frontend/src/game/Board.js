@@ -4,8 +4,9 @@ import {compose, pure, branch, renderComponent, lifecycle, withState} from 'reco
 import JoinGame from './JoinGame';
 import BidPhase from './BidPhase';
 import { gameQuery, subscribeToChange } from "../api/game";
+import {DebugPlayerSwitch} from './DebugPlayerSwitch';
 
-const testPlayer = { uuid: "4", name: "test" };
+const testPlayer = { uuid: "1", name: "north" };
 
 const enhance = compose(
     graphql(gameQuery, {
@@ -45,12 +46,15 @@ export const Board = enhance(({ player, setPlayer, game: { uuid, phase, players 
     const p = player ? <div>{player.uuid} - {player.name} - {player.spot}</div> : <div></div>;
     return (
       <div>
-          <h1>Player</h1>
+          <h1>You are</h1>
           {p}
+          <DebugPlayerSwitch setPlayer={setPlayer} />
           <h1>Game</h1>
           <div>{uuid}</div>
           <h2>Other Players</h2>
-          {players.map(({name, uuid, spot, isDealer}) => <div key={spot}>{uuid} - {name} - {spot}{isDealer ? ' - DEALER': ''}</div>)}
+          <ul>
+            {players.map(({name, uuid, spot, isDealer}) => <li key={spot}>{uuid} - {name} - {spot}{isDealer ? ' - DEALER': ''}</li>)}
+          </ul>
           { phase === 'INITIAL'
               ? <JoinGame playerUuid={player ? player.uuid : null} onGameJoined={setPlayer} gameUuid={uuid}/>
               : <BidPhase playerUuid={player ? player.uuid : null} gameUuid={uuid} />
