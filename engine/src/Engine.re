@@ -16,6 +16,11 @@ type gameState = {
     dealer: Player.player,
     deck: list(Deck.card),
     scores: list(Score.score),
+
+    /* playing state */
+    first: Player.player,
+    table: list(Deck.card),
+    trump: Deck.color,
 };
 
 let createGame = (uuid: gameUuid): gameState => {
@@ -32,17 +37,33 @@ let createGame = (uuid: gameUuid): gameState => {
         bids: [],
         deck: Deck.newDeck(),
         scores: [],
+
+        first: Player.nextPlayer(Player.North),
+        table: [],
+        trump: Deck.Spades,
     };
 };
 
-type action = LeaveGame(playerUuid) | JoinGame(playerUuid, playerName, Player.player) | StartGame | MakeBid(Bid.bid);
-type error = InvalidJoinGame | InvalidBid(Bid.error);
+type action =
+      LeaveGame(playerUuid)
+    | JoinGame(playerUuid, playerName, Player.player)
+    | StartGame
+    | MakeBid(Bid.bid)
+    | PlayCard(Player.player, Deck.card)
+;
+type error = InvalidJoinGame | InvalidBid(Bid.error) | InvalidCardPlay(CardPlay.error);
 type actionResult = State(gameState) | ActionError(error);
 
 /* @todo: move this code to Format, but this causes a circular dep */
 /* @todo: do not raise, but return directly, also allow multiple chained dispatch */
 let raiseErrorOrUnboxState = (actionResult: actionResult) => switch (actionResult) {
     | State(s) => s
+    | ActionError(InvalidCardPlay(CardPlay.CardNotInHand(_))) => raise(Failure("Error: invalid card play, not in hand"))
+    | ActionError(InvalidCardPlay(CardPlay.MustPlayColor(_, _))) => raise(Failure("Error: invalid card play, you must play asked color"))
+    | ActionError(InvalidCardPlay(CardPlay.MustPlayHigherTrump(_, _, _))) => raise(Failure("Error: invalid card play, you must play a higher trump"))
+    | ActionError(InvalidCardPlay(CardPlay.MustPlayTrump)) => raise(Failure("Error: invalid card play, you must play a trump"))
+    | ActionError(InvalidCardPlay(CardPlay.TableIsFull)) => raise(Failure("Error: invalid card play, table is full"))
+    | ActionError(InvalidCardPlay(CardPlay.NotYourTurn(_, _))) => raise(Failure("Error: invalid card play, not your turn"))
     | ActionError(InvalidBid(Bid.ValueNotLegal(_))) => raise(Failure("Error: invalid bid value"))
     | ActionError(InvalidBid(Bid.ValueNotHigher(_, _))) => raise(Failure("Error: invalid bid value should be higher than previous non-pass bid"))
     | ActionError(InvalidBid(Bid.NotYourTurn(_, _))) => raise(Failure("Error: invalid bid, not your turn"))
@@ -111,6 +132,14 @@ let rec dispatch = (action: action, state: gameState): actionResult => {
                     { ...state, bids: bids, phase: Bid.bidPhaseEnd(bids) ? Playing : state.phase }
                 })
                 | Bid.InvalidBid(e) => ActionError(InvalidBid(e))
+            }
+        }
+
+        | PlayCard(p, c) => {
+            let playerHand = state.hands |> Player.PlayerMap.find(p);
+            switch (c |> CardPlay.cardPlayValidation(state.first, state.trump, state.table, playerHand, p)) {
+                | CardPlay.ValidCardPlay => State(state)
+                | CardPlay.InvalidCardPlay(e) => ActionError(InvalidCardPlay(e))
             }
         }
     };

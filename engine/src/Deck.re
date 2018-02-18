@@ -17,4 +17,12 @@ let newDeck = () => ListUtil.product(
 ;
 
 let cut = (position, deck) => ListUtil.slice(position, List.length(deck), deck) @ ListUtil.slice(0, position - 1, deck);
-let cmpCard = (cA, cB) => cA.color === cB.color && cA.motif === cB.motif;
+let cardEquals = (cA, cB) => cA.color === cB.color && cA.motif === cB.motif;
+
+/* todo: compare with trumps */
+let motifCompare = (mA, mB) => switch ((mA, mB)) {
+    | (Value(a), Value(b)) => compare(a, b)
+};
+let motifGreaterThan = (mA, mB) => switch ((mA, mB)) {
+    | (Value(a), Value(b)) => b > a
+};
