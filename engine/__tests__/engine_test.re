@@ -100,12 +100,19 @@ describe("Engine game start", () => {
 
 describe("Engine bid", () => {
   open ExpectJs;
+  open Engine;
 
   let mkBid = (p, v) => Bid.Bid(p, v, Deck.Diamonds);
-  let dispatchBid = (p, v, game) => Engine.dispatch(Engine.MakeBid(mkBid(p, v)), game) |> Engine.raiseErrorOrUnboxState;
-  let rawDispatchBid = (p, v, game) => Engine.dispatch(Engine.MakeBid(mkBid(p, v)), game);
-  let dispatchPass = (p, game) => Engine.dispatch(Engine.MakeBid(Bid.Pass(p)), game) |> Engine.raiseErrorOrUnboxState;
-  let game = {...Engine.createGame("abc"), phase: Phase.Bidding };
+  let dispatchBid = (p, v, game) => dispatch(MakeBid(mkBid(p, v)), game) |> raiseErrorOrUnboxState;
+  let rawDispatchBid = (p, v, game) => dispatch(MakeBid(mkBid(p, v)), game);
+  let dispatchPass = (p, game) => dispatch(MakeBid(Bid.Pass(p)), game) |> raiseErrorOrUnboxState;
+  let initialGame = createGame("abc");
+  let game: gameState = {
+    ...initialGame,
+    dealer: Player.West,
+    phase: Phase.Bidding,
+    hands: initialGame.deck |> Dealer.dealHands(initialGame.dealer)
+  };
 
   test("We can make a bid", () => {
     let state = game |> dispatchBid(East, 80);
@@ -136,14 +143,70 @@ describe("Engine bid", () => {
     );
   });
 
-  test("Passing 3 times ends bid phase", () => {
+  test("Everyone passed, change dealer, reset bids, regroup cards, deal cards", () => {
     let state = game
-      |> dispatchBid(North, 80)
-      |> dispatchPass(East)
-      |> dispatchPass(South)
-      |> dispatchPass(West)
+      |> dispatchPass(Player.North)
+      |> dispatchPass(Player.East)
+      |> dispatchPass(Player.South)
+      |> dispatchPass(Player.West)
       ;
-    state.phase |> expect |> toEqual(Phase.Playing);
+    (
+        state.phase,
+        state.dealer,
+        state.bids,
+        ListUtil.equals(
+            Deck.cardEquals,
+            game.hands |> Player.PlayerMap.find(North),
+            state.hands |> Player.PlayerMap.find(North)
+        ),
+    ) |> expect |> toEqual((
+        Phase.Bidding,
+        Player.North,
+        [],
+        false,
+    ));
+  });
+  test("Passing 3 times ends bid phase, setting contract values and trump", () => {
+    let state = game
+      |> dispatchBid(Player.North, 80)
+      |> dispatchBid(Player.East, 90)
+      |> dispatchPass(Player.South)
+      |> dispatchPass(Player.West)
+      |> dispatchPass(Player.North)
+      ;
+    (
+        state.phase,
+        state.first,
+        state.contractValue,
+        state.contractPlayer,
+    ) |> expect |> toEqual((
+        Phase.Playing,
+        Player.North,
+        90,
+        Player.East,
+    ));
+  });
+
+  test("If contract is general, first player is changed", () => {
+    let state = game
+      |> dispatchBid(Player.North, 80)
+      |> dispatchBid(Player.East, Bid.general)
+      |> dispatchPass(Player.South)
+      |> dispatchPass(Player.West)
+      |> dispatchPass(Player.North)
+    ;
+
+    (
+        state.phase,
+        state.first,
+        state.contractValue,
+        state.contractPlayer,
+    ) |> expect |> toEqual((
+        Phase.Playing,
+        Player.East,
+        Bid.general,
+        Player.East,
+    ));
   });
 });
 

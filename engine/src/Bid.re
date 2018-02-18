@@ -6,6 +6,11 @@ let filterNotPass = List.filter(bid => switch bid {
     | _ => false
 });
 
+let capot = 250;
+let general = 400;
+/* @todo: annonces (belotte/rebelotte/...), coinche */
+let firstPlayerIsBidder = (v: int): bool => v === general;
+
 type error = ValueNotLegal(int) | ValueNotHigher(int, int) | NotYourTurn(Player.player, Player.player);
 type bidResult = ValidBid | InvalidBid(error);
 
@@ -13,7 +18,7 @@ let bidValidation = (lastBids: list(bid), bid: bid): bidResult => {
     let validValue = v =>
         v mod 10 === 0
         && v >= 80
-        && (v <= 160 || v === 250 || v === 400);
+        && (v <= 160 || v === capot || v === general);
 
     let bidCount = lastBids |> filterNotPass |> List.length;
 

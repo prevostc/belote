@@ -22,6 +22,10 @@ type gameState = {
     first: Player.player,
     table: list(Deck.card),
     trump: Deck.color,
+
+    /* contract state */
+    contractValue: int,
+    contractPlayer: Player.player,
 };
 
 let createGame = (uuid: gameUuid): gameState => {
@@ -45,6 +49,8 @@ let createGame = (uuid: gameUuid): gameState => {
         first: Player.nextPlayer(Player.North),
         table: [],
         trump: Deck.Spades,
+        contractPlayer: Player.North,
+        contractValue: 0,
     };
 };
 
@@ -134,8 +140,38 @@ let rec dispatch = (action: action, state: gameState): actionResult => {
             switch (b |> Bid.bidValidation(state.bids)) {
                 | Bid.ValidBid => State({
                     let bids = state.bids @ [b];
-                    /* start playing automatically if bid phase ends */
-                    { ...state, bids: bids, phase: Bid.bidPhaseEnd(bids) ? Playing : state.phase }
+                    let bidEnds = Bid.bidPhaseEnd(bids);
+                    if (bidEnds) {
+                        let winningBid = bids |> Bid.filterNotPass |> ListUtil.last;
+                        switch winningBid {
+                            /* start playing automatically if bid phase ends */
+                            | Some(Bid.Bid(p, v, c)) => {
+                                ...state,
+                                bids: bids,
+                                first: Bid.firstPlayerIsBidder(v) ? p : Player.nextPlayer(state.dealer),
+                                phase: Playing,
+                                trump: c,
+                                contractValue: v,
+                                contractPlayer: p
+                            }
+                            /* everyone passed, reset bids, change dealer, regroup cards, deal cards */
+                            | _ => {
+                                let getCards = (p) => state.hands |> Player.PlayerMap.find(p);
+                                let deck = getCards(North) @ getCards(West) @ getCards(South) @ getCards(East);
+                                let rnd = deck |> List.length |> Random.int;
+                                let dealer = Player.nextPlayer(state.dealer);
+                                {
+                                    ...state,
+                                    bids: [],
+                                    dealer: dealer,
+                                    deck: [],
+                                    hands: deck |> Deck.cut(rnd) |> Dealer.dealHands(dealer)
+                                }
+                            }
+                        }
+                    } else {
+                        { ...state, bids: bids }
+                    }
                 })
                 | Bid.InvalidBid(e) => ActionError(InvalidBid(e))
             }
