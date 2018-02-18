@@ -18,66 +18,13 @@ let rec applyN = (n, f, x) => n <= 0 ? x : applyN(n - 1, f, f(x));
 /* asked color is the first color played */
 let getAskedColor = (table: list(Deck.card)) => (table |> List.hd).color;
 
-
-/* find the highest motif of a particular color */
-let getHighestMotifOfColor = (isTrump: bool, color: Deck.color, table: list(Deck.card)): option(Deck.motif) => {
-    let sortedCardsOfColor = table
-        |> List.filter((c: Deck.card) => c.color === color)
-        |> List.map((c: Deck.card) => c.motif)
-        |> Deck.sortMotifs(isTrump ? Deck.trumpOrder : Deck.nonTrumpOrder)
-        |> List.rev
-    ;
-
-    if ((sortedCardsOfColor |> List.length) <= 0) {
-        None
-    } else {
-    /*Js.log((
-        "YO",
-        table
-           |> List.filter((c: Deck.card) => c.color === color)
-           |> List.map((c: Deck.card) => c.motif)
-           |> Array.of_list,
-        "YO",
-        table
-           |> List.filter((c: Deck.card) => c.color === color)
-           |> List.map((c: Deck.card) => c.motif)
-           |> Deck.sortMotifs(Deck.trumpOrder)
-           |> Array.of_list
-
-    ));
-    Js.log(("sortedCardsOfColor", Array.of_list(sortedCardsOfColor), sortedCardsOfColor |> List.hd));*/
-        Some(sortedCardsOfColor |> List.hd)
-    }
-};
-
-let getHighestNonTrump = getHighestMotifOfColor(false);
-let getHighestTrump = getHighestMotifOfColor(true);
-
-/* find out who is currently winning */
-let getWinningCard = (trump: Deck.color, table: list(Deck.card)): option(Deck.card) => {
-    if ((table |> List.length) <= 0) {
-        None
-    } else {
-        let askedColor = table |> getAskedColor;
-        let highestAsked = table |> getHighestNonTrump(askedColor);
-        let highestTrump = table |> getHighestTrump(trump);
-        switch ((highestTrump, highestAsked)) {
-            /* biggest trump is winning */
-            | (Some(m), _) => Some(Deck.{ color: trump, motif: m })
-            /* biggest of asked color is winning */
-            | (None, Some(m)) => Some(Deck.{ color: askedColor, motif: m })
-            | _ => None
-        }
-    }
-};
-
 /* true if the player team is currently winning the table */
 let isTeamWinningTable = (trump: Deck.color, table: list(Deck.card)) => {
     let l = table |> List.length;
     if (l < 2) {
         false
     } else {
-        let winningCard = table |> getWinningCard(trump);
+        let winningCard = table |> CardOrder.getWinningCard(trump);
         let teamCard = List.nth(table, l - 2);
         switch (winningCard) {
             /* team is winning */
@@ -102,12 +49,12 @@ let cardPlayValidation = (
     let nextToPlay = applyN(table |> List.length, Player.nextPlayer, first);
 
     let validateMustPlayTrump = () => {
-        let highestTrump = table |> getHighestTrump(trump);
-        let highestTrumpInHand = hand |> getHighestTrump(trump);
+        let highestTrump = table |> CardOrder.getHighestTrump(trump);
+        let highestTrumpInHand = hand |> CardOrder.getHighestTrump(trump);
 
         switch ((highestTrump, highestTrumpInHand)) {
             | (Some(m), Some(mh)) => {
-                let hadHigherMotif = Deck.motifGreaterThan(Deck.trumpOrder, m);
+                let hadHigherMotif = CardOrder.motifGreaterThan(CardOrder.trumpOrder, m);
                 /* you player a higher trump */
                 if (hadHigherMotif(card.motif)) {
                     ValidCardPlay
