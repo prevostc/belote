@@ -18,20 +18,40 @@ let rec applyN = (n, f, x) => n <= 0 ? x : applyN(n - 1, f, f(x));
 /* asked color is the first color played */
 let getAskedColor = (table: list(Deck.card)) => (table |> List.hd).color;
 
+
 /* find the highest motif of a particular color */
-let getHighestMotifOfColor = (color: Deck.color, table: list(Deck.card)): option(Deck.motif) => {
-    let sortedTableTrumps = table
+let getHighestMotifOfColor = (isTrump: bool, color: Deck.color, table: list(Deck.card)): option(Deck.motif) => {
+    let sortedCardsOfColor = table
         |> List.filter((c: Deck.card) => c.color === color)
         |> List.map((c: Deck.card) => c.motif)
-        |> List.sort(Deck.motifCompare)
+        |> Deck.sortMotifs(isTrump ? Deck.trumpOrder : Deck.nonTrumpOrder)
         |> List.rev
     ;
-    if ((sortedTableTrumps |> List.length) <= 0) {
+
+    if ((sortedCardsOfColor |> List.length) <= 0) {
         None
     } else {
-        Some(sortedTableTrumps |> List.hd)
+    /*Js.log((
+        "YO",
+        table
+           |> List.filter((c: Deck.card) => c.color === color)
+           |> List.map((c: Deck.card) => c.motif)
+           |> Array.of_list,
+        "YO",
+        table
+           |> List.filter((c: Deck.card) => c.color === color)
+           |> List.map((c: Deck.card) => c.motif)
+           |> Deck.sortMotifs(Deck.trumpOrder)
+           |> Array.of_list
+
+    ));
+    Js.log(("sortedCardsOfColor", Array.of_list(sortedCardsOfColor), sortedCardsOfColor |> List.hd));*/
+        Some(sortedCardsOfColor |> List.hd)
     }
 };
+
+let getHighestNonTrump = getHighestMotifOfColor(false);
+let getHighestTrump = getHighestMotifOfColor(true);
 
 /* find out who is currently winning */
 let getWinningCard = (trump: Deck.color, table: list(Deck.card)): option(Deck.card) => {
@@ -39,8 +59,8 @@ let getWinningCard = (trump: Deck.color, table: list(Deck.card)): option(Deck.ca
         None
     } else {
         let askedColor = table |> getAskedColor;
-        let highestAsked = table |> getHighestMotifOfColor(askedColor);
-        let highestTrump = table |> getHighestMotifOfColor(trump);
+        let highestAsked = table |> getHighestNonTrump(askedColor);
+        let highestTrump = table |> getHighestTrump(trump);
         switch ((highestTrump, highestAsked)) {
             /* biggest trump is winning */
             | (Some(m), _) => Some(Deck.{ color: trump, motif: m })
@@ -52,7 +72,7 @@ let getWinningCard = (trump: Deck.color, table: list(Deck.card)): option(Deck.ca
 };
 
 /* true if the player team is currently winning the table */
-let isTeamWinningTable = (trump: Deck.color, table: list(Deck.card), spot: Player.player) => {
+let isTeamWinningTable = (trump: Deck.color, table: list(Deck.card)) => {
     let l = table |> List.length;
     if (l < 2) {
         false
@@ -81,6 +101,30 @@ let cardPlayValidation = (
     let tableIsEmpty = (table |> List.length) === 0;
     let nextToPlay = applyN(table |> List.length, Player.nextPlayer, first);
 
+    let validateMustPlayTrump = () => {
+        let highestTrump = table |> getHighestTrump(trump);
+        let highestTrumpInHand = hand |> getHighestTrump(trump);
+
+        switch ((highestTrump, highestTrumpInHand)) {
+            | (Some(m), Some(mh)) => {
+                let hadHigherMotif = Deck.motifGreaterThan(Deck.trumpOrder, m);
+                /* you player a higher trump */
+                if (hadHigherMotif(card.motif)) {
+                    ValidCardPlay
+
+                /* you had a higher trump, but did not played it */
+                } else if (hadHigherMotif(mh)) {
+                    InvalidCardPlay(MustPlayHigherTrump(card.motif, m, mh))
+
+                /* played a lower trump intentionnaly */
+                } else {
+                    ValidCardPlay
+                }
+            }
+            | _ => ValidCardPlay
+        }
+    };
+
     if (! cardInHand) {
         InvalidCardPlay(CardNotInHand(card))
     } else if (nextToPlay !== spot) {
@@ -97,18 +141,31 @@ let cardPlayValidation = (
 
         /* trump asked */
         if (askedColor === trump) {
-            ValidCardPlay
+
+            /* if trump is asked and you have some, play higher */
+            if (hasTrump) {
+                validateMustPlayTrump()
+
+            } else {
+                ValidCardPlay
+            }
 
         /* non trump asked */
         } else {
-            /* you have the asked color and must play it */
             if (hasAskedColor) {
-                card.color === askedColor ? ValidCardPlay : InvalidCardPlay(MustPlayColor(askedColor, card.color))
+                /* you have the asked color and must play it */
+                if (card.color !== askedColor) {
+                    InvalidCardPlay(MustPlayColor(askedColor, card.color))
+
+                /* everything else is permitted*/
+                } else {
+                    ValidCardPlay
+                }
 
             /* you have some trump, rules apply*/
             } else if (hasTrump) {
                 /* team is winning, can play anything */
-                if (spot |> isTeamWinningTable(trump, table)) {
+                if (table |> isTeamWinningTable(trump)) {
                     ValidCardPlay
 
                 /* team is not winning, you have trump and must play it*/
@@ -117,27 +174,7 @@ let cardPlayValidation = (
 
                 /* you rightfully played trump */
                 } else {
-                    let highestTrump = table |> getHighestMotifOfColor(trump);
-                    let highestTrumpInHand = hand |> getHighestMotifOfColor(trump);
-
-                    switch ((highestTrump, highestTrumpInHand)) {
-                        | (Some(m), Some(mh)) => {
-                            Js.log(("HERE", m, mh, card.motif));
-                            /* you player a higher trump */
-                            if (Deck.motifGreaterThan(m, card.motif)) {
-                                ValidCardPlay
-
-                            /* you had a higher trump, but did not played it */
-                            } else if (Deck.motifGreaterThan(m, mh)) {
-                                InvalidCardPlay(MustPlayHigherTrump(card.motif, m, mh))
-
-                            /* played a lower trump intentionnaly */
-                            } else {
-                                ValidCardPlay
-                            }
-                        }
-                        | _ => ValidCardPlay
-                    }
+                    validateMustPlayTrump()
                 }
 
             /* you do not have trumps and you do not have the asked color */

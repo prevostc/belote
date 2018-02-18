@@ -19,7 +19,7 @@ let bidValidation = (lastBids: list(bid), bid: bid): bidResult => {
 
     /* check if it's this player to speak */
     let checkValidPlayer = p => lastBids |> ListUtil.last |> b => switch b {
-        /* check if this is indeed the next player speaking */
+        /* check if this is indeed the next player speaKing */
         | Some(Bid(prevP, _, _) | Pass(prevP)) => Player.nextPlayer(prevP) === p ? ValidBid : InvalidBid(NotYourTurn(prevP, p))
         /* first player is always valid */
         | None => ValidBid

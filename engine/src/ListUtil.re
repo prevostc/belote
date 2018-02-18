@@ -20,3 +20,15 @@ let find = filter => List.fold_left((agg, e) => switch agg {
     | None => filter(e) ? Some(e) : None
     | Some(a) => Some(a)
 }, None);
+
+let indexOf = (e, eq, lst): option(int) => {
+    let filteredList = lst
+       |> List.mapi((i, el) => (i, el))
+       |> List.filter(((_, el)) => eq(el, e));
+    if (List.length(filteredList) > 0) {
+        let (i, _) = filteredList |> List.hd;
+        Some(i)
+    } else {
+        None
+    }
+}

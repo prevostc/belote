@@ -76,3 +76,22 @@ describe("ListUtil.find", () => {
     [(1, 1), (1, 2), (1, 3)] |> find(((one, _)) => one === 1) |> expect |> toEqual(Some((1, 1)));
   });
 });
+
+
+describe("ListUtil.indexOf", () => {
+  open ExpectJs;
+  open ListUtil;
+
+  test("Index of simple existing element", () => {
+    [10, 20, 30, 40, 50] |> indexOf(20, (===)) |> expect |> toEqual(Some(1));
+  });
+  test("Index of simple non existing element", () => {
+    [10, 20, 30, 40, 50] |> indexOf(100, (===)) |> expect |> toEqual(None);
+  });
+  test("Index of complex existing element", () => {
+    [(1, 1), (1, 2), (1, 3)] |> indexOf((1, 2), ((a1, a2), (b1, b2)) => a1 === b1 && a2 === b2) |> expect |> toEqual(Some(1));
+  });
+  test("Index of complex non existing element", () => {
+    [(1, 1), (1, 2), (1, 3)] |> indexOf((10, 20), ((a1, a2), (b1, b2)) => a1 === b1 && a2 === b2) |> expect |> toEqual(None);
+  });
+});

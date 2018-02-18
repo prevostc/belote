@@ -73,7 +73,7 @@ let raiseErrorOrUnboxState = (actionResult: actionResult) => switch (actionResul
 let playerExists = (playerUuid) => Player.PlayerMap.exists((_, p: playerState) => p.uuid === playerUuid);
 let findPlayer = (playerUuid, map) => map |> Player.PlayerMap.filter((_, p: playerState) => p.uuid === playerUuid) |> Player.PlayerMap.choose;
 
-/* @todo: split actions on state in different reducers ? maybe the phase change, deck shuffle, deck cut and deck dealing do not belong to the same place ? */
+/* @todo: split actions on state in different reducers ? maybe the phase change, deck shuffle, deck cut and deck dealing do not belong to the same plAce ? */
 let rec dispatch = (action: action, state: gameState): actionResult => {
     switch action {
         | LeaveGame(playerUuid) => {

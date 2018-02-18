@@ -87,7 +87,7 @@ describe("Engine game start", () => {
   test("The deck gets shuffled on game start", () => {
     let state = game |> Engine.dispatch(Engine.StartGame) |> Engine.raiseErrorOrUnboxState;
     /* @todo: this tests may fail il the first card stays unchanged, seed the random to fix */
-    state.hands |> Player.PlayerMap.find(Player.East) |> List.hd |> expect |> not_ |> toEqual(mkCard(Deck.Spades, Deck.king));
+    state.hands |> Player.PlayerMap.find(Player.East) |> List.hd |> expect |> not_ |> toEqual(mkCard(Deck.Spades, Deck.King));
   });
 
   test("The deck gets dealt on game start", () => {
