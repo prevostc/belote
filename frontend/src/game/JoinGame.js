@@ -10,7 +10,6 @@ const enhance = compose(
         props: ({ joinGame, ownProps: { playerUuid, onGameJoined, gameUuid } }) => ({
             joinGame: async (name, spot) => {
                 const variables = { uuid: gameUuid, playerUuid, name, spot };
-                console.log(variables);
                 const data = await joinGame({
                     variables,
                     update: joinGameUpdate({ uuid: gameUuid }),
@@ -38,6 +37,7 @@ const enhance = compose(
     pure
 );
 
+// @todo: get those from the engine lib
 const spots = ['NORTH', 'EAST', 'SOUTH', 'WEST'];
 
 export const JoinGame = enhance(({ joinGame, errors, name, onNameChange }) => {

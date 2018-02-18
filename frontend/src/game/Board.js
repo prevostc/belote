@@ -5,6 +5,7 @@ import JoinGame from './JoinGame';
 import BidPhase from './BidPhase';
 import { gameQuery, subscribeToChange } from "../api/game";
 
+const testPlayer = { uuid: "4", name: "test" };
 
 const enhance = compose(
     graphql(gameQuery, {
@@ -36,7 +37,7 @@ const enhance = compose(
         props => props.error,
         renderComponent(({ error }) => <div>ERROR: {JSON.stringify(error)}</div>),
     ),
-    withState('player', 'setPlayer', ''),
+    withState('player', 'setPlayer', testPlayer),
     pure
 );
 
@@ -44,12 +45,15 @@ export const Board = enhance(({ player, setPlayer, game: { uuid, phase, players 
     const p = player ? <div>{player.uuid} - {player.name} - {player.spot}</div> : <div></div>;
     return (
       <div>
+          <h1>Player</h1>
           {p}
+          <h1>Game</h1>
           <div>{uuid}</div>
+          <h2>Other Players</h2>
           {players.map(({name, uuid, spot, isDealer}) => <div key={spot}>{uuid} - {name} - {spot}{isDealer ? ' - DEALER': ''}</div>)}
           { phase === 'INITIAL'
               ? <JoinGame playerUuid={player ? player.uuid : null} onGameJoined={setPlayer} gameUuid={uuid}/>
-              : <BidPhase/>
+              : <BidPhase playerUuid={player ? player.uuid : null} gameUuid={uuid} />
           }
 
       </div>

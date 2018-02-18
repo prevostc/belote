@@ -15,9 +15,10 @@ const publishGameChange = (game) => {
 (function(){
     const gameUuid = "test-game";
     let game = engine.createGame(gameUuid);
-    game = engine.raiseErrorOrUnboxState(engine.joinGame('1', 'n', SPOT.WEST, game));
+    game = engine.raiseErrorOrUnboxState(engine.joinGame('1', 'w', SPOT.WEST, game));
     game = engine.raiseErrorOrUnboxState(engine.joinGame('2', 's', SPOT.SOUTH, game));
     game = engine.raiseErrorOrUnboxState(engine.joinGame('3', 'e', SPOT.EAST, game));
+    game = engine.raiseErrorOrUnboxState(engine.joinGame('4', 'n', SPOT.NORTH, game));
     gameStore.save(game);
 })();
 
