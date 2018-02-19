@@ -31,4 +31,6 @@ let indexOf = (e, eq, lst): option(int) => {
     } else {
         None
     }
-}
+};
+
+let flatMap = (f, lst) => lst |> List.fold_left((agg, e) => agg @ f(e), []);

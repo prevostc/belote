@@ -6,7 +6,7 @@ let pokerOrder = [Deck.Ace, Deck.King, Deck.Queen, Deck.Jack, Deck.V10, Deck.V9,
 let trumpOrder = [Deck.Jack, Deck.V9, Deck.Ace, Deck.V10, Deck.King, Deck.Queen, Deck.V8, Deck.V7];
 
 /* A 10 K Q J 9 8 7 */
-let nonTrumpOrder = [Deck.Ace, Deck.V10, Deck.King, Deck.Queen, Deck.Jack, Deck.V9, Deck.V8, Deck.V7];
+let plainOrder = [Deck.Ace, Deck.V10, Deck.King, Deck.Queen, Deck.Jack, Deck.V9, Deck.V8, Deck.V7];
 
 let motifCompare = (order, motifA, motifB): int => {
     let getIdx = (motif, order) => order |> ListUtil.indexOf(motif, (===));
@@ -32,7 +32,7 @@ let getHighestMotifOfColor = (isTrump: bool, color: Deck.color, table: list(Deck
     let sortedCardsOfColor = table
         |> List.filter((c: Deck.card) => c.color === color)
         |> List.map((c: Deck.card) => c.motif)
-        |> sortMotifs(isTrump ? trumpOrder : nonTrumpOrder)
+        |> sortMotifs(isTrump ? trumpOrder : plainOrder)
         |> List.rev
     ;
 

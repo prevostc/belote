@@ -219,17 +219,18 @@ describe("Engine Play", () => {
   let dispatchPlay = (p, c, game) => dispatch(Engine.PlayCard(p, c), game) |> raiseErrorOrUnboxState;
   let card = Deck.{color: Deck.Spades, motif: Deck.Ace};
   let cardX8 = [card,card,card,card,card,card,card,card];
+  let initialGame = createGame("abc");
   let game = {
-    ...createGame("abc"),
+    ...initialGame,
     phase: Phase.Playing,
     dealer: Player.West,
     first: Player.North,
     trump: Deck.Spades,
     contractValue: 90,
     contractPlayer: Player.North,
-    graveyard:  Player.TeamMap.empty
-       |> Player.TeamMap.add(NorthSouth, cardX8 @ cardX8)
-       |> Player.TeamMap.add(EastWest, cardX8),
+    graveyard: initialGame.graveyard
+       |> Player.PlayerMap.add(North, cardX8 @ cardX8)
+       |> Player.PlayerMap.add(East, cardX8),
     hands: Player.PlayerMap.empty
         |> Player.PlayerMap.add(North, [Deck.{color: Deck.Spades, motif: Deck.Ace} , Deck.{color: Deck.Clubs, motif: Deck.Ace}])
         |> Player.PlayerMap.add(East,  [Deck.{color: Deck.Spades, motif: Deck.V10} , Deck.{color: Deck.Clubs, motif: Deck.V10}])

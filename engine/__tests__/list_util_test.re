@@ -95,3 +95,13 @@ describe("ListUtil.indexOf", () => {
     [(1, 1), (1, 2), (1, 3)] |> indexOf((10, 20), ((a1, a2), (b1, b2)) => a1 === b1 && a2 === b2) |> expect |> toEqual(None);
   });
 });
+
+
+describe("ListUtil.flatMap", () => {
+  open ExpectJs;
+  open ListUtil;
+
+  test("Index of simple existing element", () => {
+    [1, 2, 3, 4, 5] |> flatMap(e => [e, e * 10]) |> expect |> toEqual([1, 10, 2, 20, 3, 30, 4, 40, 5, 50]);
+  });
+});

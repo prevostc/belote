@@ -18,7 +18,7 @@ type gameState = {
     scores: list(Score.score),
 
     /* playing state */
-    graveyard: Player.TeamMap.t(list(Deck.card)),
+    graveyard: Player.PlayerMap.t(list(Deck.card)),
     first: Player.player,
     table: list(Deck.card),
     trump: Deck.color,
@@ -43,9 +43,11 @@ let createGame = (uuid: gameUuid): gameState => {
         deck: Deck.newDeck(),
         scores: [],
 
-        graveyard: Player.TeamMap.empty
-            |> Player.TeamMap.add(NorthSouth, [])
-            |> Player.TeamMap.add(EastWest, []),
+        graveyard: Player.PlayerMap.empty
+            |> Player.PlayerMap.add(North, [])
+            |> Player.PlayerMap.add(East, [])
+            |> Player.PlayerMap.add(South, [])
+            |> Player.PlayerMap.add(West, []),
         first: Player.nextPlayer(Player.North),
         table: [],
         trump: Deck.Spades,
@@ -184,35 +186,29 @@ let rec dispatch = (action: action, state: gameState): actionResult => {
                     let turnIsOver = (newTable |> List.length) === 4;
                     if (turnIsOver) {
                         let winningPlayer = TurnWinner.getWinningPlayer(state.first, state.trump, newTable);
-                        let winningTeam = winningPlayer |> Player.getTeam;
-                        let winningTeamGraveyard = state.graveyard |> Player.TeamMap.find(winningTeam);
+                        let winningPlayerGraveyard = state.graveyard |> Player.PlayerMap.find(winningPlayer);
                         let newState = {
                             ...state,
                             table: [],
                             hands: state.hands |> Player.PlayerMap.add(p, playerHand |> List.filter(card => !Deck.cardEquals(c, card))),
-                            graveyard: state.graveyard |> Player.TeamMap.add(winningTeam, winningTeamGraveyard @ newTable),
+                            graveyard: state.graveyard |> Player.PlayerMap.add(winningPlayer, winningPlayerGraveyard @ newTable),
                             first: winningPlayer
                         };
                         let roundIsOver = (state.hands |> Player.PlayerMap.find(Player.North) |> List.length) <= 0;
 
                         /* round is over, scores are written down, dealer is changed, cards are regrouped and cut and dealt */
                         if (roundIsOver) {
-                            let getCards = (t) => newState.graveyard |> Player.TeamMap.find(t);
-                            let deck = getCards(EastWest) @ getCards(NorthSouth);
+                            let getCards = (t) => newState.graveyard |> Player.PlayerMap.find(t);
+                            let deck = getCards(East) @ getCards(West) @ getCards(North) @ getCards(South);
                             let rnd = deck |> List.length |> Random.int;
                             let dealer = Player.nextPlayer(newState.dealer);
-                            /* @todo: test if contract has been made */
-                            let contractMade = true;
+                            let newScore = Score.contractToScore(state.trump, state.contractValue, state.contractPlayer, state.graveyard);
                             State({
                                 ...newState,
                                 dealer: dealer,
                                 bids: [],
                                 deck: [],
-                                scores: newState.scores @ [
-                                    contractMade
-                                        ? Score.{score: newState.contractValue, team: Player.getTeam(newState.contractPlayer)}
-                                        : Score.{score: newState.contractValue, team: Player.getOtherTeam(Player.getTeam(newState.contractPlayer))}
-                                ],
+                                scores: newState.scores @ [newScore],
                                 hands: deck |> Deck.cut(rnd) |> Dealer.dealHands(dealer)
                             })
                         /* round is not over, keep going */

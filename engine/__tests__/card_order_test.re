@@ -31,12 +31,12 @@ describe("Card order", () => {
 
   test("compares motifs according to non trump order", () => {
     (
-        motifCompare(nonTrumpOrder, Deck.Ace, Deck.Jack),
-        motifCompare(nonTrumpOrder, Deck.V10, Deck.Jack),
-        motifCompare(nonTrumpOrder, Deck.V10, Deck.V9),
-        motifCompare(nonTrumpOrder, Deck.V10, Deck.Queen),
-        motifCompare(nonTrumpOrder, Deck.Queen, Deck.Queen),
-        motifCompare(nonTrumpOrder, Deck.V7, Deck.V10),
+        motifCompare(plainOrder, Deck.Ace, Deck.Jack),
+        motifCompare(plainOrder, Deck.V10, Deck.Jack),
+        motifCompare(plainOrder, Deck.V10, Deck.V9),
+        motifCompare(plainOrder, Deck.V10, Deck.Queen),
+        motifCompare(plainOrder, Deck.Queen, Deck.Queen),
+        motifCompare(plainOrder, Deck.V7, Deck.V10),
     ) |> expect |> toEqual((
         1, 1, 1, 1, 0, -1
     ));
@@ -44,12 +44,12 @@ describe("Card order", () => {
 
   test("compares motifs with helper function", () => {
     (
-        motifGreaterThan(nonTrumpOrder, Deck.Ace, Deck.Jack),
-        motifGreaterThan(nonTrumpOrder, Deck.V10, Deck.Jack),
-        motifGreaterThan(nonTrumpOrder, Deck.V10, Deck.V9),
-        motifGreaterThan(nonTrumpOrder, Deck.V10, Deck.Queen),
-        motifGreaterThan(nonTrumpOrder, Deck.Queen, Deck.Queen),
-        motifGreaterThan(nonTrumpOrder, Deck.V7, Deck.V10),
+        motifGreaterThan(plainOrder, Deck.Ace, Deck.Jack),
+        motifGreaterThan(plainOrder, Deck.V10, Deck.Jack),
+        motifGreaterThan(plainOrder, Deck.V10, Deck.V9),
+        motifGreaterThan(plainOrder, Deck.V10, Deck.Queen),
+        motifGreaterThan(plainOrder, Deck.Queen, Deck.Queen),
+        motifGreaterThan(plainOrder, Deck.V7, Deck.V10),
     ) |> expect |> toEqual((
         false, false, false, false, false, true
     ));
@@ -60,17 +60,17 @@ describe("Card order", () => {
     (
         motifs |> sortMotifs(pokerOrder),
         motifs |> sortMotifs(trumpOrder),
-        motifs |> sortMotifs(nonTrumpOrder),
+        motifs |> sortMotifs(plainOrder),
         motifs |> sortMotifs(pokerOrder) |> List.rev,
         motifs |> sortMotifs(trumpOrder) |> List.rev,
-        motifs |> sortMotifs(nonTrumpOrder) |> List.rev,
+        motifs |> sortMotifs(plainOrder) |> List.rev,
     ) |> expect |> toEqual((
         [Deck.V7, Deck.V8, Deck.V9, Deck.V10, Deck.Jack, Deck.Queen, Deck.King, Deck.Ace],
         [Deck.V7, Deck.V8, Deck.Queen, Deck.King, Deck.V10, Deck.Ace, Deck.V9, Deck.Jack],
         [Deck.V7, Deck.V8, Deck.V9, Deck.Jack, Deck.Queen, Deck.King, Deck.V10, Deck.Ace],
         pokerOrder,
         trumpOrder,
-        nonTrumpOrder,
+        plainOrder,
     ));
   });
 
