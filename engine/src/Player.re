@@ -15,6 +15,11 @@ let getTeam = (player) => switch player {
     | West => EastWest
 };
 
+let getOtherTeam = (team) => switch team {
+    | EastWest => NorthSouth
+    | NorthSouth => EastWest
+};
+
 /* @todo: using a map is kind of annoying when you sometimes want to search by uuid and sometimes by spot */
 module PlayerMap = Map.Make({
     type t = player;

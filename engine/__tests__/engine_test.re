@@ -217,11 +217,19 @@ describe("Engine Play", () => {
   open Engine;
 
   let dispatchPlay = (p, c, game) => dispatch(Engine.PlayCard(p, c), game) |> raiseErrorOrUnboxState;
+  let card = Deck.{color: Deck.Spades, motif: Deck.Ace};
+  let cardX8 = [card,card,card,card,card,card,card,card];
   let game = {
     ...createGame("abc"),
     phase: Phase.Playing,
+    dealer: Player.West,
     first: Player.North,
     trump: Deck.Spades,
+    contractValue: 90,
+    contractPlayer: Player.North,
+    graveyard:  Player.TeamMap.empty
+       |> Player.TeamMap.add(NorthSouth, cardX8 @ cardX8)
+       |> Player.TeamMap.add(EastWest, cardX8),
     hands: Player.PlayerMap.empty
         |> Player.PlayerMap.add(North, [Deck.{color: Deck.Spades, motif: Deck.Ace} , Deck.{color: Deck.Clubs, motif: Deck.Ace}])
         |> Player.PlayerMap.add(East,  [Deck.{color: Deck.Spades, motif: Deck.V10} , Deck.{color: Deck.Clubs, motif: Deck.V10}])
@@ -261,11 +269,26 @@ describe("Engine Play", () => {
     ));
   });
 
-  test("When round is over, scores are written, dealer is changed, cards are regrouped and cut and dealt", () => {
-    let g5 = g4 |>  dispatchPlay(Player.West,  Deck.{color: Deck.Clubs, motif: Deck.Jack});
+  test("When round is over, scores are written down, dealer is changed, cards are regrouped and cut and dealt", () => {
+    let g5 = g4 |> dispatchPlay(Player.West,  Deck.{color: Deck.Clubs, motif: Deck.Jack});
     let g6 = g5 |> dispatchPlay(Player.North, Deck.{color: Deck.Clubs, motif: Deck.Ace});
     let g7 = g6 |> dispatchPlay(Player.East,  Deck.{color: Deck.Clubs, motif: Deck.V10});
     let g8 = g7 |> dispatchPlay(Player.South, Deck.{color: Deck.Clubs, motif: Deck.King});
-    true |> expect |> toEqual(true)
+    (
+        g8.table,
+        g8.dealer,
+        g8.bids,
+        g8.deck,
+        g8.scores,
+        /* cards have been dealt */
+        g8.hands |> Player.PlayerMap.find(North) |> List.length,
+    ) |> expect |> toEqual((
+        [],
+        Player.North,
+        [],
+        [],
+        [Score.{team: Player.NorthSouth, score: 90}],
+        8
+    ));
   });
 });

@@ -61,7 +61,6 @@ type action =
     | FourthPlayerJoined
     | MakeBid(Bid.bid)
     | PlayCard(Player.player, Deck.card)
-    | RoundEnded
 ;
 type error = InvalidJoinGame | InvalidBid(Bid.error) | InvalidCardPlay(CardPlay.error);
 type actionResult = State(gameState) | ActionError(error);
@@ -194,12 +193,34 @@ let rec dispatch = (action: action, state: gameState): actionResult => {
                             graveyard: state.graveyard |> Player.TeamMap.add(winningTeam, winningTeamGraveyard @ newTable),
                             first: winningPlayer
                         };
-                        /* round is over, dispatch an event*/
-                        State(
-                            ((state.hands |> Player.PlayerMap.find(Player.North) |> List.length) <= 0)
-                                ? raiseErrorOrUnboxState(dispatch(RoundEnded, newState)) : newState
-                        );
+                        let roundIsOver = (state.hands |> Player.PlayerMap.find(Player.North) |> List.length) <= 0;
+
+                        /* round is over, scores are written down, dealer is changed, cards are regrouped and cut and dealt */
+                        if (roundIsOver) {
+                            let getCards = (t) => newState.graveyard |> Player.TeamMap.find(t);
+                            let deck = getCards(EastWest) @ getCards(NorthSouth);
+                            let rnd = deck |> List.length |> Random.int;
+                            let dealer = Player.nextPlayer(newState.dealer);
+                            /* @todo: test if contract has been made */
+                            let contractMade = true;
+                            State({
+                                ...newState,
+                                dealer: dealer,
+                                bids: [],
+                                deck: [],
+                                scores: newState.scores @ [
+                                    contractMade
+                                        ? Score.{score: newState.contractValue, team: Player.getTeam(newState.contractPlayer)}
+                                        : Score.{score: newState.contractValue, team: Player.getOtherTeam(Player.getTeam(newState.contractPlayer))}
+                                ],
+                                hands: deck |> Deck.cut(rnd) |> Dealer.dealHands(dealer)
+                            })
+                        /* round is not over, keep going */
+                        } else {
+                            State(newState)
+                        }
                     } else {
+                        /* turn is not over, remove card from player hand and continue */
                         State({
                             ...state,
                             table: newTable,
@@ -209,10 +230,6 @@ let rec dispatch = (action: action, state: gameState): actionResult => {
                 }
                 | CardPlay.InvalidCardPlay(e) => ActionError(InvalidCardPlay(e))
             }
-        }
-
-        | RoundEnded => {
-            State(state)
         }
     };
 };
