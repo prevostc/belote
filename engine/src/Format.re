@@ -24,6 +24,16 @@ let consts = [%bs.obj {
         "HEARTS": Deck.Hearts,
         "DIAMONDS": Deck.Diamonds,
         "CLUBS": Deck.Clubs
+    }],
+    "CARD_MOTIF": [%bs.obj {
+        "ACE": Deck.Ace,
+        "V10": Deck.V10,
+        "KING": Deck.King,
+        "QUEEN": Deck.Queen,
+        "JACK": Deck.Jack,
+        "V9": Deck.V9,
+        "V8": Deck.V8,
+        "V7": Deck.V7
     }]
 }];
 
@@ -49,12 +59,29 @@ let formatCardColor = (c: Deck.color) => switch c {
     | Deck.Clubs => "CLUBS"
 };
 
+let formatCardMotif = (m: Deck.motif) => switch m {
+    | Deck.Ace => "ACE"
+    | Deck.V10 => "V10"
+    | Deck.King => "KING"
+    | Deck.Queen => "QUEEN"
+    | Deck.Jack => "JACK"
+    | Deck.V9 => "V9"
+    | Deck.V8 => "V8"
+    | Deck.V7 => "V7"
+    | _ => "OTHER"
+};
+
 let formatPlayer = (gameUuid, spot: Player.player, p: Engine.playerState) => [%bs.obj {
     "uuid": p.uuid,
     "gameUuid": gameUuid,
     "name": p.name,
     "spot": spot |> formatSpot
 }];
+
+let formatPlayers = (g: Engine.gameState) => g.players
+    |> Player.PlayerMap.bindings
+    |> List.map(((k: Player.player, v: Engine.playerState)) => formatPlayer(g.uuid, k, v))
+    |> Array.of_list;
 
 let formatBid = (gameUuid, playerUuid, bid: Bid.bid) => switch (bid) {
     | Bid.Pass(_) => [%bs.obj {
@@ -73,29 +100,32 @@ let formatBid = (gameUuid, playerUuid, bid: Bid.bid) => switch (bid) {
     }]
 };
 
+let formatBids = (g: Engine.gameState) => g.bids
+    |> List.map((b: Bid.bid) => {
+        let player = switch (b) {
+            | Bid.Bid(p, _, _) | Pass(p) => g.players |> Player.PlayerMap.find(p)
+        };
+        formatBid(g.uuid, player.uuid, b)
+    })
+    |> Array.of_list;
+
+
+let formatCard = (c: Deck.card) => [%bs.obj {
+   "color": formatCardColor(c.color),
+   "motif": formatCardMotif(c.motif)
+}];
+
+let formatPlayerCards = (playerUuid, g: Engine.gameState) => g
+    |> Engine.getCards(playerUuid)
+    |> List.map(formatCard)
+    |> Array.of_list;
+
+
 /* @todo: format hands, bids, deck and scores */
 let formatGame = (g: Engine.gameState) => {
     [%bs.obj {
         "uuid": g.uuid,
-        "players": g.players
-            |> Player.PlayerMap.bindings
-            |> List.map(((k: Player.player, v: Engine.playerState)) => formatPlayer(g.uuid, k, v))
-            |> Array.of_list,
-        "bids": g.bids
-            |> List.map((b: Bid.bid) => {
-                let player = switch (b) {
-                    | Bid.Bid(p, _, _) | Pass(p) => g.players |> Player.PlayerMap.find(p)
-                };
-                formatBid(g.uuid, player.uuid, b)
-            })
-            |> Array.of_list,
         "phase": g.phase |> formatPhase,
         "dealer": g.dealer |> formatSpot
     }];
 };
-let formatCards = cards => cards |> List.map((c: Deck.card) => {
-    [%bs.obj {
-       "color": formatCardColor(c.color),
-       "motif": 12
-    }]
-}) |> Array.of_list;

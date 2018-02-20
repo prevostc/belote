@@ -31,6 +31,9 @@ describe("ListUtil.shuffle", () => {
   test("The list gets shuffled", () => {
     shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) |> equals((===), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) |> expect |> toEqual(false);
   });
+  test("The list gets shuffled differently on every call", () => {
+    shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) |> equals((===), shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])) |> expect |> toEqual(false);
+  });
 });
 
 

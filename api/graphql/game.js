@@ -3,6 +3,7 @@ const { PubSub, withFilter } = require('graphql-subscriptions');
 const { engine, format } = require('../engine');
 const SPOT = format.consts.SPOT;
 const CARD_COLOR = format.consts.CARD_COLOR;
+const CARD_MOTIF = format.consts.CARD_MOTIF;
 const gameStore = require('../store/gameStore');
 
 const pubsub = new PubSub();
@@ -19,6 +20,10 @@ const publishGameChange = (game) => {
     game = engine.raiseErrorOrUnboxState(engine.joinGame('2', 'east', SPOT.EAST, game));
     game = engine.raiseErrorOrUnboxState(engine.joinGame('3', 'south', SPOT.SOUTH, game));
     game = engine.raiseErrorOrUnboxState(engine.joinGame('4', 'west', SPOT.WEST, game));
+    game = engine.raiseErrorOrUnboxState(engine.bid('1', 80, CARD_COLOR['HEARTS'], game));
+    game = engine.raiseErrorOrUnboxState(engine.pass('2', game));
+    game = engine.raiseErrorOrUnboxState(engine.pass('3', game));
+    game = engine.raiseErrorOrUnboxState(engine.pass('4', game));
     gameStore.save(game);
 })();
 
@@ -35,6 +40,7 @@ const schema = `
         players: [Player]!
         phase: String!
         bids: [Bid]!
+        cards(playerUuid: String!): [Card]!
     }
     
     enum CardColor {
@@ -42,6 +48,17 @@ const schema = `
         HEARTS
         DIAMONDS 
         CLUBS
+    }
+    
+    enum CardMotif {
+        ACE
+        V10
+        KING
+        QUEEN
+        JACK
+        V9
+        V8
+        V7
     }
     
     type Bid {
@@ -53,7 +70,7 @@ const schema = `
     
     type Card {
         color: CardColor!
-        motif: Int!
+        motif: CardMotif!
     }
     
     type Player {
@@ -73,8 +90,9 @@ const schema = `
     type Mutation {
         createGame(name: String): Game!
         joinGame(gameUuid: String!, playerUuid: String, playerName: String!, spot: PlayerSpot!): Player!
-        bid(gameUuid: String!, playerUuid: String, value: Int!, color: CardColor!): Game!
-        pass(gameUuid: String!, playerUuid: String): Game!
+        bid(gameUuid: String!, playerUuid: String!, value: Int!, color: CardColor!): Game!
+        pass(gameUuid: String!, playerUuid: String!): Game!
+        playCard(gameUuid: String!, playerUuid: String!, color: CardColor!, motif: CardMotif!): Game!
     }
     
     type Subscription {
@@ -94,8 +112,7 @@ const resolvers = {
         },
         cards: async (player) => {
             const game = await gameStore.get(player.gameUuid);
-            const cards = engine.getCards(player.uuid, game);
-            return format.formatCards(cards);
+            return format.formatPlayerCards(player.uuid, game);
         },
     },
     Bid: {
@@ -104,6 +121,20 @@ const resolvers = {
             const gameObj = await gameStore.get(gameUuid);
             const [spot, player] = engine.getPlayerAndSpot(playerUuid, gameObj);
             return format.formatPlayer(gameUuid, spot, player);
+        },
+    },
+    Game: {
+        bids: async (game) => {
+            const gameObj = await gameStore.get(game.uuid);
+            return format.formatBids(gameObj);
+        },
+        players: async (game) => {
+            const gameObj = await gameStore.get(game.uuid);
+            return format.formatPlayers(gameObj);
+        },
+        cards: async (game, args) => {
+            const gameObj  = await gameStore.get(game.uuid);
+            return format.formatPlayerCards(args.playerUuid, gameObj);
         },
     },
     Query: {
@@ -158,6 +189,19 @@ const resolvers = {
             let gameObj = await gameStore.get(gameUuid);
 
             const res = engine.pass(playerUuid, gameObj);
+            gameObj = engine.raiseErrorOrUnboxState(res);
+
+            await gameStore.save(gameObj);
+            publishGameChange(gameObj);
+
+            return format.formatGame(gameObj);
+        },
+        playCard: async(ctx, args) => {
+            // @todo: input check
+            const { gameUuid, playerUuid, color, motif } = args;
+            let gameObj = await gameStore.get(gameUuid);
+
+            const res = engine.playCard(playerUuid, CARD_COLOR[color], CARD_MOTIF[motif], gameObj);
             gameObj = engine.raiseErrorOrUnboxState(res);
 
             await gameStore.save(gameObj);

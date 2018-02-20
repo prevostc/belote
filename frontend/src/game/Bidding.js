@@ -72,7 +72,7 @@ const enhance = compose(
 );
 
 
-export const BidPhase = enhance(({value, onValueChange, color, onColorChange, bid, pass, bids}) => {
+export const Bidding = enhance(({value, onValueChange, color, onColorChange, bid, pass, bids}) => {
     return (
       <div>
           <h1>Bidding</h1>
@@ -101,4 +101,4 @@ export const BidPhase = enhance(({value, onValueChange, color, onColorChange, bi
     );
 });
 
-export default BidPhase;
+export default Bidding;

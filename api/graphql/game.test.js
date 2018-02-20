@@ -3,6 +3,8 @@ const app = require('../app');
 const store = require('../store/gameStore');
 const { engine, format } = require('../engine');
 const SPOT = format.consts.SPOT;
+const CARD_COLOR = format.consts.CARD_COLOR;
+const CARD_MOTIF = format.consts.CARD_MOTIF;
 
 function graphqlQuery({ query, variables }) {
     const req = request(app)
@@ -12,12 +14,20 @@ function graphqlQuery({ query, variables }) {
     return req
 }
 
-function createGameStub({ uuid, players = [] }) {
+async function createGameStub({ uuid, players = [], bids = [] }) {
     let game = engine.createGame(uuid);
     game = players.reduce((game, { uuid: playerUuid, spot, name }) => {
         return engine.raiseErrorOrUnboxState(engine.joinGame(playerUuid, name, spot, game));
     }, game);
-    return store.save(game);
+    game = bids.reduce((game, bid) => {
+        return engine.raiseErrorOrUnboxState(
+            bid.pass
+                ? engine.pass(bid.uuid, game)
+                : engine.bid(bid.uuid, bid.value, bid.color, game)
+        );
+    }, game);
+    await store.save(game);
+    return game;
 }
 
 
@@ -53,9 +63,15 @@ describe('graphql game api', () => {
             uuid: 'abc',
             players: [
                 {uuid: '1', spot: SPOT.NORTH, name: 'a' },
-                {uuid: '2', spot: SPOT.SOUTH, name: 'b' },
-                {uuid: '3', spot: SPOT.EAST, name: 'c' },
+                {uuid: '2', spot: SPOT.EAST, name: 'b' },
+                {uuid: '3', spot: SPOT.SOUTH, name: 'c' },
                 {uuid: '4', spot: SPOT.WEST, name: 'd' },
+            ],
+            bids: [
+                { pass: false, uuid: '1', value: 80, color: CARD_COLOR.SPADES },
+                { pass: true, uuid: '2' },
+                { pass: true, uuid: '3' },
+                { pass: true, uuid: '4' },
             ]
         });
         const response = await graphqlQuery({
@@ -71,18 +87,47 @@ describe('graphql game api', () => {
                             motif
                         }
                     }
+                    bids {
+                        isPass
+                        value
+                        color
+                        player {
+                            uuid
+                        }
+                    }
+                    playerCards: cards(playerUuid: "1") {
+                        color
+                        motif
+                    }
                     phase
                 }
             }`,
         });
         expect(response.body.errors).not.toBeDefined();
+
         const gameData = response.body.data.game;
         expect(gameData.uuid).toEqual('abc');
+
+        // players
         expect(gameData.players.length).toEqual(4);
-        const northPlayer = gameData.players.find(p => p.spot === "NORTH")
+        const northPlayer = gameData.players.find(p => p.spot === "NORTH");
         expect(northPlayer.isDealer).toEqual(true);
         expect(northPlayer.spot).toEqual("NORTH");
+
+        // bids
+        expect(gameData.bids.length).toEqual(4);
+        const bid = gameData.bids[0];
+        expect(bid.color).toEqual("SPADES");
+        expect(bid.value).toEqual(80);
+        expect(bid.isPass).toEqual(false);
+
+        // cards
         expect(northPlayer.cards.length).toEqual(8);
+        const card = northPlayer.cards[0];
+        expect(card.color).toBeDefined();
+        expect(card.motif).toBeDefined();
+        expect(gameData.playerCards).toBeDefined();
+        expect(gameData.playerCards.length).toEqual(8);
     });
 
     it('should join a game', async() => {
@@ -261,5 +306,53 @@ describe('graphql game api', () => {
         expect(bid.color).toEqual(null);
         const player = bid.player;
         expect(player.uuid).toEqual("1");
+    });
+
+    it('should be able to play a card', async() => {
+        const g = await createGameStub({
+            uuid: 'abc',
+            players: [
+                {uuid: '1', spot: SPOT.NORTH, name: 'a' },
+                {uuid: '2', spot: SPOT.EAST, name: 'b' },
+                {uuid: '3', spot: SPOT.SOUTH, name: 'c' },
+                {uuid: '4', spot: SPOT.WEST, name: 'd' },
+            ],
+            bids: [
+                { pass: false, uuid: '1', value: 80, color: CARD_COLOR.SPADES },
+                { pass: true, uuid: '2' },
+                { pass: true, uuid: '3' },
+                { pass: true, uuid: '4' },
+            ]
+        });
+        const cards = format.formatPlayerCards('2', g);
+
+        const response = await graphqlQuery({
+            query: `
+                mutation playCard($gameUuid: String!, $playerUuid: String!, $color: CardColor!, $motif: CardMotif!) {
+                    playCard(gameUuid: $gameUuid, playerUuid: $playerUuid, color: $color, motif: $motif) {
+                        uuid
+                        players {
+                            uuid
+                            cards {
+                                color
+                                motif
+                            }
+                        }
+                    }
+                }`,
+            variables: {
+                gameUuid: 'abc',
+                playerUuid: '2',
+                color: cards[0].color,
+                motif: cards[0].motif,
+            },
+        });
+        expect(response.body.errors).not.toBeDefined();
+        const game = response.body.data.playCard;
+        expect(game.uuid).toEqual('abc');
+        expect(game.players.length).toEqual(4);
+        const player = game.players.find(p => p.uuid === '2');
+        expect(player.uuid).toEqual('2');
+        expect(player.cards.length).toEqual(7);
     });
 })

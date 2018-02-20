@@ -230,31 +230,35 @@ let rec dispatch = (action: action, state: gameState): actionResult => {
     };
 };
 
-/* public api: actions */
-let joinGame = (uuid: playerUuid, name: playerName, spot: Player.player, state: gameState): actionResult => state |> dispatch(JoinGame(uuid, name, spot));
-
-let bid = (uuid: playerUuid, value: int, color: Deck.color, state: gameState): actionResult => {
-    let (spot, _) = state.players |> findPlayer(uuid);
-    state |> dispatch(MakeBid(Bid.Bid(spot, value, color)))
-};
-let pass = (uuid: playerUuid, state: gameState): actionResult => {
-    let (spot, _) = state.players |> findPlayer(uuid);
-    state |> dispatch(MakeBid(Bid.Pass(spot)))
-};
 
 /* public api: selectors */
 let getPlayerAndSpot = (uuid: playerUuid, state: gameState) => state.players |> findPlayer(uuid);
 
+let getPlayerSpot = (uuid: playerUuid, state: gameState) => state.players |> findPlayer(uuid) |> fst;
+
 let getUuid = (state: gameState) => state.uuid;
 
-let getCards = (uuid: playerUuid, state: gameState) => {
-    state.players |> playerExists(uuid)
-        ? state.players |> findPlayer(uuid) |> ((spot, _)) => (state.hands |> Player.PlayerMap.find(spot))
-        : []
-};
+let getCards = (uuid: playerUuid, state: gameState) => state.players |> playerExists(uuid)
+    ? state.players |> findPlayer(uuid) |> ((spot, _)) => (state.hands |> Player.PlayerMap.find(spot))
+    : [];
 
-let isDealer = (uuid: playerUuid, state: gameState): bool => {
-    state.players |> playerExists(uuid)
+let isDealer = (uuid: playerUuid, state: gameState): bool => state.players |> playerExists(uuid)
         ? state.players |> findPlayer(uuid) |> ((spot, _)) => spot === state.dealer
-        : false
+        : false;
+
+
+/* public api: actions */
+let joinGame = (uuid: playerUuid, name: playerName, spot: Player.player, state: gameState): actionResult => state |> dispatch(JoinGame(uuid, name, spot));
+
+let bid = (uuid: playerUuid, value: int, color: Deck.color, state: gameState): actionResult => {
+    let spot = state |> getPlayerSpot(uuid);
+    state |> dispatch(MakeBid(Bid.Bid(spot, value, color)))
+};
+let pass = (uuid: playerUuid, state: gameState): actionResult => {
+    let spot = state |> getPlayerSpot(uuid);
+    state |> dispatch(MakeBid(Bid.Pass(spot)))
+};
+let playCard = (uuid: playerUuid, color: Deck.color, motif: Deck.motif, state: gameState): actionResult => {
+    let spot = state |> getPlayerSpot(uuid);
+    state |> dispatch(PlayCard(spot, Deck.{color: color, motif: motif}))
 };

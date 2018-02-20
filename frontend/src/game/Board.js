@@ -1,10 +1,11 @@
 import React from 'react';
 import { graphql } from 'react-apollo';
-import {compose, pure, branch, renderComponent, lifecycle, withState} from 'recompose';
+import { compose, pure, branch, renderComponent, lifecycle, withState } from 'recompose';
 import JoinGame from './JoinGame';
-import BidPhase from './BidPhase';
+import Bidding from './Bidding';
+import Playing from './Playing';
 import { gameQuery, subscribeToChange } from "../api/game";
-import {DebugPlayerSwitch} from './DebugPlayerSwitch';
+import { DebugPlayerSwitch } from './DebugPlayerSwitch';
 
 const testPlayer = { uuid: "1", name: "north" };
 
@@ -49,7 +50,9 @@ export const Board = enhance(({ player, setPlayer, game: { uuid, phase, players 
             case 'INITIAL':
                 return <JoinGame playerUuid={player ? player.uuid : null} onGameJoined={setPlayer} gameUuid={uuid}/>;
             case 'BIDDING':
-                return <BidPhase playerUuid={player ? player.uuid : null} gameUuid={uuid} />
+                return <Bidding playerUuid={player ? player.uuid : null} gameUuid={uuid} />
+            case 'PLAYING':
+                return <Playing playerUuid={player ? player.uuid : null} gameUuid={uuid} />
             default:
                 return <div>Phase {phase}</div>
         }
