@@ -44,8 +44,11 @@ const enhance = compose(
     pure
 );
 
-export const Board = enhance(({ player, setPlayer, game: { uuid, table, phase, players }}) => {
+export const Board = enhance(({ player, setPlayer, game: { uuid, table, phase, players, contract }}) => {
     const p = player ? <div>{player.uuid} - {player.name} - {player.spot}</div> : <div></div>;
+    const renderContract = (contract) => contract === null
+        ? (<span></span>)
+        : <div>{contract.value} - {contract.player.spot} - {contract.player.team}</div>
     const renderPhase = (phase) => {
         switch (phase) {
             case 'INITIAL':
@@ -77,6 +80,8 @@ export const Board = enhance(({ player, setPlayer, game: { uuid, table, phase, p
                     </li>)
                 )}
           </ul>
+          <h2>contract</h2>
+           {renderContract(contract)}
           <h2>table</h2>
           <ol>
               {table.map(({color, motif}) => <li key={`${color}-${motif}`}>

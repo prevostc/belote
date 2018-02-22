@@ -1,6 +1,15 @@
 import gql from "graphql-tag";
 
 export const gameFragment = gql`
+    fragment playerFragment on Player {
+        uuid
+        team
+        spot
+        name
+        isDealer
+        actionNeeded
+    }
+
     fragment gameFragment on Game {
         uuid
         phase
@@ -9,11 +18,13 @@ export const gameFragment = gql`
             motif
         }
         players {
-            uuid
-            spot
-            name
-            isDealer
-            actionNeeded
+            ...playerFragment
+        }
+        contract {
+            value
+            player {
+                ...playerFragment
+            }
         }
     }
 `;
