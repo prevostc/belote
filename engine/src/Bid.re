@@ -14,6 +14,8 @@ let firstPlayerIsBidder = (v: int): bool => v === general;
 type error = ValueNotLegal(int) | ValueNotHigher(int, int) | NotYourTurn(Player.player, Player.player);
 type bidResult = ValidBid | InvalidBid(error);
 
+let getNextToPlay = (dealer, bids) => FnUtil.applyN(List.length(bids) + 1, Player.nextPlayer, dealer);
+
 let bidValidation = (lastBids: list(bid), bid: bid): bidResult => {
     let validValue = v =>
         v mod 10 === 0

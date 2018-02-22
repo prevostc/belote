@@ -4,11 +4,16 @@ export const gameFragment = gql`
     fragment gameFragment on Game {
         uuid
         phase
+        table {
+            color
+            motif
+        }
         players {
             uuid
             spot
             name
             isDealer
+            actionNeeded
         }
     }
 `;

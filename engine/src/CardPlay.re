@@ -12,6 +12,8 @@ type cardPlayResult = ValidCardPlay | InvalidCardPlay(error);
 /* asked color is the first color played */
 let getAskedColor = (table: list(Deck.card)) => (table |> List.hd).color;
 
+let getNextToPlay = (first, table) => FnUtil.applyN(table |> List.length, Player.nextPlayer, first);
+
 /* card playing business rules, yes it's that complex... */
 let cardPlayValidation = (
     first: Player.player,
@@ -24,7 +26,7 @@ let cardPlayValidation = (
     let cardInHand = hand |> List.exists(c => Deck.cardEquals(c, card));
     let tableIsFull = (table |> List.length) === 4;
     let tableIsEmpty = (table |> List.length) === 0;
-    let nextToPlay = FnUtil.applyN(table |> List.length, Player.nextPlayer, first);
+    let nextToPlay = table |> getNextToPlay(first);
 
     let validateMustPlayTrump = () => {
         let highestTrump = table |> CardOrder.getHighestTrump(trump);

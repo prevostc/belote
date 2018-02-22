@@ -242,9 +242,31 @@ let getCards = (uuid: playerUuid, state: gameState) => state.players |> playerEx
     ? state.players |> findPlayer(uuid) |> ((spot, _)) => (state.hands |> Player.PlayerMap.find(spot))
     : [];
 
+let getTableCards = (state: gameState) => state.table;
+
 let isDealer = (uuid: playerUuid, state: gameState): bool => state.players |> playerExists(uuid)
         ? state.players |> findPlayer(uuid) |> ((spot, _)) => spot === state.dealer
         : false;
+
+let getNextToPlay = (state: gameState) => state.table |> CardPlay.getNextToPlay(state.first);
+
+let isPlayerActionNeeded = (uuid: playerUuid, state: gameState): bool => switch state.phase {
+    | Bidding => Bid.getNextToPlay(state.dealer, state.bids) === getPlayerSpot(uuid, state)
+    | Playing => CardPlay.getNextToPlay(state.first, state.table) === getPlayerSpot(uuid, state)
+    | _ => false
+};
+
+let getActionNeededFromPlayerAndSpot = (state: gameState) => {
+    let spot = switch state.phase {
+        | Bidding => Some(Bid.getNextToPlay(state.dealer, state.bids))
+        | Playing => Some(CardPlay.getNextToPlay(state.first, state.table))
+        | _ => None
+    };
+    switch spot {
+        | Some(s) => Some((s, state.players |> Player.PlayerMap.find(s)))
+        | None => None
+    }
+};
 
 
 /* public api: actions */

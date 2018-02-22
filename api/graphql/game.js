@@ -28,11 +28,21 @@ const publishGameChange = (game) => {
 })();
 
 const schema = `
+    enum Team {
+        NORTH_SOUTH
+        EAST_WEST
+    }
+
     enum PlayerSpot {
       NORTH
       SOUTH
       EAST
       WEST
+    }
+    
+    type Contract {
+        player: Player!
+        value: Int!
     }
 
     type Game {
@@ -41,6 +51,9 @@ const schema = `
         phase: String!
         bids: [Bid]!
         cards(playerUuid: String!): [Card]!
+        actionNeededFrom: Player
+        table: [Card]!
+        contract: Contract
     }
     
     enum CardColor {
@@ -78,8 +91,10 @@ const schema = `
         name: String!
         spot: PlayerSpot!
         
+        team: Team!
         game: Game!
         isDealer: Boolean!
+        actionNeeded: Boolean!
         cards: [Card]!
     }
     
@@ -114,6 +129,10 @@ const resolvers = {
             const game = await gameStore.get(player.gameUuid);
             return format.formatPlayerCards(player.uuid, game);
         },
+        actionNeeded: async (player) => {
+            const game = await gameStore.get(player.gameUuid);
+            return engine.isPlayerActionNeeded(player.uuid, game);
+        },
     },
     Bid: {
         player: async (bid) => {
@@ -135,6 +154,19 @@ const resolvers = {
         cards: async (game, args) => {
             const gameObj  = await gameStore.get(game.uuid);
             return format.formatPlayerCards(args.playerUuid, gameObj);
+        },
+        actionNeededFrom: async (game) => {
+            const gameObj  = await gameStore.get(game.uuid);
+            const res = format.formatOptional(engine.getActionNeededFromPlayerAndSpot(gameObj));
+            if (res === null) {
+                return null;
+            }
+            const [spot, player] = res;
+            return format.formatPlayer(game.uuid, spot, player);
+        },
+        table: async (game) => {
+            const gameObj  = await gameStore.get(game.uuid);
+            return format.formatCards(engine.getTableCards(gameObj));
         },
     },
     Query: {

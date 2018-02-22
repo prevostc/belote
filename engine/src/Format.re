@@ -115,10 +115,13 @@ let formatCard = (c: Deck.card) => [%bs.obj {
    "motif": formatCardMotif(c.motif)
 }];
 
-let formatPlayerCards = (playerUuid, g: Engine.gameState) => g
-    |> Engine.getCards(playerUuid)
+let formatCards = (cards) => cards
     |> List.map(formatCard)
     |> Array.of_list;
+
+let formatPlayerCards = (playerUuid, g: Engine.gameState) => g
+    |> Engine.getCards(playerUuid)
+    |> formatCards;
 
 
 /* @todo: format hands, bids, deck and scores */
@@ -129,3 +132,8 @@ let formatGame = (g: Engine.gameState) => {
         "dealer": g.dealer |> formatSpot
     }];
 };
+
+let formatOptional = (o) => switch o {
+    | Some(v) => Js.Nullable.return(v)
+    | None => Js.Nullable.null
+}

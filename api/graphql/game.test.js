@@ -78,10 +78,14 @@ describe('graphql game api', () => {
             query: `{
                 game(uuid: "abc") {
                     uuid
+                    actionNeededFrom {
+                        uuid
+                    }
                     players {
                         uuid
                         spot
                         isDealer
+                        actionNeeded
                         cards {
                             color
                             motif
@@ -100,6 +104,17 @@ describe('graphql game api', () => {
                         motif
                     }
                     phase
+                    table {
+                        color
+                        motif
+                    }
+                    contract {
+                        player {
+                            uuid
+                            team
+                        }
+                        value
+                    }
                 }
             }`,
         });
@@ -128,6 +143,16 @@ describe('graphql game api', () => {
         expect(card.motif).toBeDefined();
         expect(gameData.playerCards).toBeDefined();
         expect(gameData.playerCards.length).toEqual(8);
+        const table = gameData.table;
+        expect(table).toEqual([]);
+
+        // contract
+        expect(gameData.contract).toBeDefined();
+        const contract = gameData.contract;
+        expect(contract.player).toBeDefined();
+        expect(contract.player.uuid).toEqual(1);
+        expect(contract.player.team).toEqual("NORTH_SOUTH");
+        expect(contract.value).toEqual(80);
     });
 
     it('should join a game', async() => {

@@ -1,6 +1,7 @@
 import React from 'react';
 import { graphql } from "react-apollo/index";
 import { branch, compose, lifecycle, pure, renderComponent } from "recompose";
+import Card from './Card';
 import { CardsQuery, playCardMutation, playCardMutationUpdate, subscribeToChange } from "../api/card";
 
 const enhance = compose(
@@ -54,8 +55,8 @@ export const Playing = enhance(({ cards, playCard }) => {
       <div>
           <h1>Card</h1>
           <ol>
-            {cards.map(({color, motif}) => <li>
-                {color} {motif}
+            {cards.map(({color, motif}) => <li key={`${color}-${motif}`}>
+                <Card color={color} motif={motif} />
                 <button onClick={() => playCard(color, motif)}>Play this</button>
             </li>)}
           </ol>

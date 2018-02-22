@@ -4,6 +4,7 @@ import { compose, pure, branch, renderComponent, lifecycle, withState } from 're
 import JoinGame from './JoinGame';
 import Bidding from './Bidding';
 import Playing from './Playing';
+import Card from './Card';
 import { gameQuery, subscribeToChange } from "../api/game";
 import { DebugPlayerSwitch } from './DebugPlayerSwitch';
 
@@ -43,7 +44,7 @@ const enhance = compose(
     pure
 );
 
-export const Board = enhance(({ player, setPlayer, game: { uuid, phase, players }}) => {
+export const Board = enhance(({ player, setPlayer, game: { uuid, table, phase, players }}) => {
     const p = player ? <div>{player.uuid} - {player.name} - {player.spot}</div> : <div></div>;
     const renderPhase = (phase) => {
         switch (phase) {
@@ -57,6 +58,7 @@ export const Board = enhance(({ player, setPlayer, game: { uuid, phase, players 
                 return <div>Phase {phase}</div>
         }
     };
+
     return (
       <div>
           <h1>You are</h1>
@@ -67,8 +69,20 @@ export const Board = enhance(({ player, setPlayer, game: { uuid, phase, players 
           <div>{uuid}</div>
           <h2>Other Players</h2>
           <ul>
-            {players.map(({name, uuid, spot, isDealer}) => <li key={spot}>{uuid} - {name} - {spot}{isDealer ? ' - DEALER': ''}</li>)}
+            {[...players]
+                .sort(({ uuid: a }, { uuid: b }) => a.localeCompare(b))
+                .map(({name, uuid, spot, isDealer, actionNeeded}) => (
+                    <li key={spot}>
+                        {uuid} - {name} - {spot}{isDealer ? ' - DEALER': ''}{actionNeeded ? ' - ACTION_NEEDED': ''}
+                    </li>)
+                )}
           </ul>
+          <h2>table</h2>
+          <ol>
+              {table.map(({color, motif}) => <li key={`${color}-${motif}`}>
+                  <Card color={color} motif={motif} />
+              </li>)}
+          </ol>
           { renderPhase(phase) }
       </div>
     );
