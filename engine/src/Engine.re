@@ -233,8 +233,8 @@ let rec dispatch = (action: action, state: gameState): actionResult => {
 
 /* public api: selectors */
 let getPlayerAndSpot = (uuid: playerUuid, state: gameState) => state.players |> findPlayer(uuid);
-
 let getPlayerSpot = (uuid: playerUuid, state: gameState) => state.players |> findPlayer(uuid) |> fst;
+let getPlayerState = (uuid: playerUuid, state: gameState) => state.players |> findPlayer(uuid) |> fst;
 
 let getUuid = (state: gameState) => state.uuid;
 

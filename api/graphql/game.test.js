@@ -150,7 +150,7 @@ describe('graphql game api', () => {
         expect(gameData.contract).toBeDefined();
         const contract = gameData.contract;
         expect(contract.player).toBeDefined();
-        expect(contract.player.uuid).toEqual(1);
+        expect(contract.player.uuid).toEqual("1");
         expect(contract.player.team).toEqual("NORTH_SOUTH");
         expect(contract.value).toEqual(80);
     });

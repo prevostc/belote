@@ -12,6 +12,10 @@ let consts = [%bs.obj {
         "SOUTH": Player.South,
         "WEST": Player.West
     }],
+    "TEAM": [%bs.obj {
+        "NORTH_SOUTH": Player.NorthSouth,
+        "EAST_WEST": Player.EastWest
+    }],
     "PHASE": [%bs.obj {
         "INITIAL": Phase.Initial,
         "DEALING": Phase.Dealing,
@@ -44,6 +48,10 @@ let formatSpot = (s: Player.player) => switch s {
     | Player.West => "WEST"
 };
 
+let formatTeam = (s: Player.team) => switch s {
+    | Player.NorthSouth => "NORTH_SOUTH"
+    | Player.EastWest => "EAST_WEST"
+};
 let formatPhase = (p: Phase.phase) => switch p {
     | Phase.Initial => "INITIAL"
     | Phase.Dealing => "DEALING"
@@ -75,7 +83,8 @@ let formatPlayer = (gameUuid, spot: Player.player, p: Engine.playerState) => [%b
     "uuid": p.uuid,
     "gameUuid": gameUuid,
     "name": p.name,
-    "spot": spot |> formatSpot
+    "spot": spot |> formatSpot,
+    "team": spot |> Player.getTeam |> formatTeam
 }];
 
 let formatPlayers = (g: Engine.gameState) => g.players
@@ -123,13 +132,23 @@ let formatPlayerCards = (playerUuid, g: Engine.gameState) => g
     |> Engine.getCards(playerUuid)
     |> formatCards;
 
+let formatContract = (g: Engine.gameState) => {
+    switch g.phase {
+        | Phase.Playing => Js.Nullable.return([%bs.obj {
+           "player": g.players |> Player.PlayerMap.find(g.contractPlayer) |> formatPlayer(g.uuid, g.contractPlayer),
+           "value": g.contractValue
+       }])
+       | _ => Js.Nullable.null
+    }
+};
 
 /* @todo: format hands, bids, deck and scores */
 let formatGame = (g: Engine.gameState) => {
     [%bs.obj {
         "uuid": g.uuid,
         "phase": g.phase |> formatPhase,
-        "dealer": g.dealer |> formatSpot
+        "dealer": g.dealer |> formatSpot,
+        "contract": g |> formatContract
     }];
 };
 
