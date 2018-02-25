@@ -35,8 +35,9 @@ let cardPlayValidation = (
         switch ((highestTrump, highestTrumpInHand)) {
             | (Some(m), Some(mh)) => {
                 let hadHigherMotif = CardOrder.motifGreaterThan(CardOrder.trumpOrder, m);
-                /* you player a higher trump */
+                /* you played a higher trump */
                 if (hadHigherMotif(card.motif)) {
+                    Js.log("here2");
                     ValidCardPlay
 
                 /* you had a higher trump, but did not played it */
@@ -71,7 +72,12 @@ let cardPlayValidation = (
 
             /* if trump is asked and you have some, play higher */
             if (hasTrump) {
-                validateMustPlayTrump()
+
+                if (card.color !== askedColor) {
+                    InvalidCardPlay(MustPlayColor(askedColor, card.color))
+                } else {
+                    validateMustPlayTrump()
+                }
 
             } else {
                 ValidCardPlay

@@ -43,6 +43,17 @@ describe("Card play validation", () => {
     card |> cardPlayValidation(first, trump, table, hand, spot) |> expect |> toEqual(InvalidCardPlay(MustPlayColor(Deck.Diamonds, Deck.Clubs)));
   });
 
+  test("Must play asked color if you have it, even if it's a trump asked", () => {
+    let table = [
+        Deck.{color: Deck.Hearts, motif: Deck.V10},
+        Deck.{color: Deck.Hearts, motif: Deck.V9},
+    ];
+    let card = Deck.{color: Deck.Diamonds, motif: Deck.Jack};
+    let hand = [Deck.{color: Deck.Hearts, motif: Deck.Ace}, card];
+    let spot = Player.South;
+    card |> cardPlayValidation(Player.North, Deck.Hearts, table, hand, spot) |> expect |> toEqual(InvalidCardPlay(MustPlayColor(Deck.Hearts, Deck.Diamonds)));
+  });
+
   test("Must play a higher trump if it's the asked color", () => {
     let card = Deck.{color: Deck.Spades, motif: Deck.V7};
     let table = [
