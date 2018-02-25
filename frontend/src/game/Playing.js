@@ -26,7 +26,7 @@ const enhance = compose(
                 const variables = { gameUuid, playerUuid, color, motif };
                 return playCard({
                     variables,
-                    update: playCardMutationUpdate({ gameUuid, playerUuid }),
+                    update: playCardMutationUpdate(variables),
                 });
             }
         }),

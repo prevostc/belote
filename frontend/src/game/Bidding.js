@@ -28,7 +28,7 @@ const enhance = compose(
                 const variables = { gameUuid, playerUuid, value, color };
                 return bid({
                     variables,
-                    update: bidMutationUpdate({ gameUuid, playerUuid }),
+                    update: bidMutationUpdate(variables),
                 });
             }
         }),
@@ -40,7 +40,7 @@ const enhance = compose(
                 const variables = { gameUuid, playerUuid };
                 return pass({
                     variables,
-                    update: passMutationUpdate({ gameUuid, playerUuid }),
+                    update: passMutationUpdate(variables),
                 });
             }
         }),

@@ -1,4 +1,5 @@
 import gql from "graphql-tag";
+import {gameFragment} from "./game";
 
 export const cardFragment = gql`
     fragment cardFragment on Card {
@@ -32,8 +33,7 @@ export const playCardMutation = gql`
 
 // write the newly created project to the query cache
 // http://dev.apollodata.com/core/read-and-write.html#updating-the-cache-after-a-mutation
-export const playCardMutationUpdate = ({ gameUuid }) => (proxy, { data: { playCard } }) => {
-    const variables = { gameUuid };
+export const playCardMutationUpdate = (variables) => (proxy, { data: { playCard } }) => {
     const query = CardsQuery
     const data = proxy.readQuery({ query, variables })
     data.game.cards = playCard.cards;
@@ -43,12 +43,14 @@ export const playCardMutationUpdate = ({ gameUuid }) => (proxy, { data: { playCa
 const gameChangeSubscription = gql`
     subscription gameStateChanged($gameUuid: String!, $playerUuid: String!) {
         gameStateChanged(uuid: $uuid) {
+            ...gameFragment
             cards (playerUuid: $playerUuid) {
                 ...cardFragment
             }
         }
     }
     ${cardFragment}
+    ${gameFragment}
 `;
 
 export const subscribeToChange = (query) => ({gameUuid, playerUuid}) => {

@@ -46,7 +46,7 @@ const schema = `
     }
 
     type Game {
-        uuid: String!
+        uuid: ID!
         players: [Player]!
         phase: String!
         bids: [Bid]!
@@ -87,7 +87,7 @@ const schema = `
     }
     
     type Player {
-        uuid: String!
+        uuid: ID!
         name: String!
         spot: PlayerSpot!
         
