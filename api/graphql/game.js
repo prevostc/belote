@@ -85,6 +85,7 @@ const schema = `
     type Card {
         color: CardColor!
         motif: CardMotif!
+        canBePlayed(gameUuid: ID!, playerUuid: ID!): Boolean!
     }
     
     type Player {
@@ -141,6 +142,16 @@ const resolvers = {
             const gameObj = await gameStore.get(gameUuid);
             const [spot, player] = engine.getPlayerAndSpot(playerUuid, gameObj);
             return format.formatPlayer(gameUuid, spot, player);
+        },
+    },
+    Card: {
+        canBePlayed: async (card, args) => {
+            const { gameUuid, playerUuid } = args;
+            const { color, motif } = card;
+            let gameObj = await gameStore.get(gameUuid);
+
+            const res = engine.canCardBePlayed(playerUuid, CARD_COLOR[color], CARD_MOTIF[motif], gameObj);
+            return res;
         },
     },
     Game: {

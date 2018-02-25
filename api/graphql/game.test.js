@@ -363,6 +363,7 @@ describe('graphql game api', () => {
                             cards {
                                 color
                                 motif
+                                canBePlayed(gameUuid: $gameUuid, playerUuid: $playerUuid)
                             }
                         }
                     }

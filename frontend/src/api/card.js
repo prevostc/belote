@@ -5,6 +5,7 @@ export const cardFragment = gql`
     fragment cardFragment on Card {
         color
         motif
+        canBePlayed(gameUuid: $gameUuid, playerUuid: $playerUuid)
     }
 `;
 

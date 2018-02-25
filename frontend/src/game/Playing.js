@@ -55,9 +55,9 @@ export const Playing = enhance(({ cards, playCard }) => {
       <div>
           <h1>Card</h1>
           <ol>
-            {cards.map(({color, motif}) => <li key={`${color}-${motif}`}>
+            {cards.map(({color, motif, canBePlayed}) => <li key={`${color}-${motif}`}>
                 <Card color={color} motif={motif} />
-                <button onClick={() => playCard(color, motif)}>Play this</button>
+                {canBePlayed ? <button onClick={() => playCard(color, motif)}>Play this</button> : ''}
             </li>)}
           </ol>
       </div>

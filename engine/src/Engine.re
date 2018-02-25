@@ -67,20 +67,24 @@ type action =
 type error = InvalidJoinGame | InvalidBid(Bid.error) | InvalidCardPlay(CardPlay.error);
 type actionResult = State(gameState) | ActionError(error);
 
+let errorToMessage = (error) => switch error {
+    | InvalidCardPlay(CardPlay.CardNotInHand(_)) => "Error: invalid card play, not in hand"
+    | InvalidCardPlay(CardPlay.MustPlayColor(_, _)) => "Error: invalid card play, you must play asked color"
+    | InvalidCardPlay(CardPlay.MustPlayHigherTrump(_, _, _)) => "Error: invalid card play, you must play a higher trump"
+    | InvalidCardPlay(CardPlay.MustPlayTrump) => "Error: invalid card play, you must play a trump"
+    | InvalidCardPlay(CardPlay.TableIsFull) => "Error: invalid card play, table is full"
+    | InvalidCardPlay(CardPlay.NotYourTurn(_, _)) => "Error: invalid card play, not your turn"
+    | InvalidBid(Bid.ValueNotLegal(_)) => "Error: invalid bid value"
+    | InvalidBid(Bid.ValueNotHigher(_, _)) => "Error: invalid bid value should be higher than previous non-pass bid"
+    | InvalidBid(Bid.NotYourTurn(_, _)) => "Error: invalid bid, not your turn"
+    | InvalidJoinGame => "Error: invalid game join attempt"
+};
+
 /* @todo: move this code to Format, but this causes a circular dep */
 /* @todo: do not raise, but return directly, also allow multiple chained dispatch */
 let raiseErrorOrUnboxState = (actionResult: actionResult) => switch (actionResult) {
     | State(s) => s
-    | ActionError(InvalidCardPlay(CardPlay.CardNotInHand(_))) => raise(Failure("Error: invalid card play, not in hand"))
-    | ActionError(InvalidCardPlay(CardPlay.MustPlayColor(_, _))) => raise(Failure("Error: invalid card play, you must play asked color"))
-    | ActionError(InvalidCardPlay(CardPlay.MustPlayHigherTrump(_, _, _))) => raise(Failure("Error: invalid card play, you must play a higher trump"))
-    | ActionError(InvalidCardPlay(CardPlay.MustPlayTrump)) => raise(Failure("Error: invalid card play, you must play a trump"))
-    | ActionError(InvalidCardPlay(CardPlay.TableIsFull)) => raise(Failure("Error: invalid card play, table is full"))
-    | ActionError(InvalidCardPlay(CardPlay.NotYourTurn(_, _))) => raise(Failure("Error: invalid card play, not your turn"))
-    | ActionError(InvalidBid(Bid.ValueNotLegal(_))) => raise(Failure("Error: invalid bid value"))
-    | ActionError(InvalidBid(Bid.ValueNotHigher(_, _))) => raise(Failure("Error: invalid bid value should be higher than previous non-pass bid"))
-    | ActionError(InvalidBid(Bid.NotYourTurn(_, _))) => raise(Failure("Error: invalid bid, not your turn"))
-    | ActionError(InvalidJoinGame) => raise(Failure("Error: invalid game join attempt"))
+    | ActionError(e) => raise(Failure(e |> errorToMessage))
 };
 
 let playerExists = (playerUuid) => Player.PlayerMap.exists((_, p: playerState) => p.uuid === playerUuid);
@@ -265,6 +269,16 @@ let getActionNeededFromPlayerAndSpot = (state: gameState) => {
     switch spot {
         | Some(s) => Some((s, state.players |> Player.PlayerMap.find(s)))
         | None => None
+    }
+};
+
+let canCardBePlayed= (uuid: playerUuid, color: Deck.color, motif: Deck.motif, state: gameState) => {
+    let p = state |> getPlayerSpot(uuid);
+    let c = Deck.{color: color, motif: motif};
+    let playerHand = state.hands |> Player.PlayerMap.find(p);
+    switch (c |> CardPlay.cardPlayValidation(state.first, state.trump, state.table, playerHand, p)) {
+        | CardPlay.ValidCardPlay => true
+        | CardPlay.InvalidCardPlay(e) => false
     }
 };
 
