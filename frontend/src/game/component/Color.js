@@ -12,11 +12,11 @@ const colorMap = {
     "DIAMONDS": "♦",
 };
 
-export const Card = enhance(({ color, motif }) => {
+export const Color = enhance(({ color }) => {
     return (
-        <span>{colorMap[color]} {motif}</span>
+        <span>{colorMap[color]}</span>
     );
 });
 
-export default Card;
+export default Color;
 

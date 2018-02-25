@@ -1,7 +1,7 @@
 import React from 'react';
 import { graphql } from "react-apollo/index";
 import { branch, compose, lifecycle, pure, renderComponent } from "recompose";
-import Card from './Card';
+import Card from './component/Card';
 import { CardsQuery, playCardMutation, playCardMutationUpdate, subscribeToChange } from "../api/card";
 
 const enhance = compose(

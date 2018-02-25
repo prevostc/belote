@@ -15,7 +15,7 @@ export const bidFragment = gql`
 `;
 
 export const BidsQuery = gql`
-    query game($gameUuid: String!) {
+    query game($gameUuid: ID!) {
         game(uuid: $gameUuid) {
             ...gameFragment
             bids {
@@ -29,7 +29,7 @@ export const BidsQuery = gql`
 `;
 
 export const bidMutation = gql`
-    mutation bid($gameUuid: String!, $playerUuid: String!, $value: Int!, $color: CardColor!) {
+    mutation bid($gameUuid: ID!, $playerUuid: ID!, $value: Int!, $color: CardColor!) {
         bid(gameUuid: $gameUuid, playerUuid: $playerUuid, value: $value, color: $color) {
             ...gameFragment
             bids {
@@ -41,7 +41,7 @@ export const bidMutation = gql`
     ${gameFragment}
 `;
 export const passMutation = gql`
-    mutation pass($gameUuid: String!, $playerUuid: String!) {
+    mutation pass($gameUuid: ID!, $playerUuid: ID!) {
         pass(gameUuid: $gameUuid, playerUuid: $playerUuid) {
             ...gameFragment
             bids {
@@ -58,7 +58,7 @@ export const passMutation = gql`
 export const bidMutationUpdate = (variables) => (proxy, { data: { bid } }) => {
     const query = BidsQuery
     const data = proxy.readQuery({ query, variables })
-    data.game.bids = bid.bids;
+    data.game = bid;
     proxy.writeQuery({ query, variables, data })
 };
 
@@ -67,7 +67,7 @@ export const bidMutationUpdate = (variables) => (proxy, { data: { bid } }) => {
 export const passMutationUpdate = (variables) => (proxy, { data: { pass } }) => {
     const query = BidsQuery
     const data = proxy.readQuery({ query, variables })
-    data.game.bids = pass.bids;
+    data.game = pass;
     proxy.writeQuery({ query, variables, data })
 };
 

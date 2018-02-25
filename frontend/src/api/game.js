@@ -25,6 +25,7 @@ export const gameFragment = gql`
         }
         contract {
             value
+            trump
             player {
                 ...playerFragment
             }
@@ -35,7 +36,7 @@ export const gameFragment = gql`
 `;
 
 export const gameQuery = gql`
-    query game($uuid: String!) {
+    query game($uuid: ID!) {
         game(uuid: $uuid) {
             ...gameFragment
         }
@@ -45,7 +46,7 @@ export const gameQuery = gql`
 `;
 
 export const joinGameQuery = gql`
-    mutation joinGame($uuid: String!, $playerUuid: String, $name: String!, $spot: PlayerSpot!) {
+    mutation joinGame($uuid: ID!, $playerUuid: ID, $name: String!, $spot: PlayerSpot!) {
         joinGame(gameUuid: $uuid, playerUuid: $playerUuid, playerName: $name, spot: $spot) {
             ...playerFragment
             game {
@@ -67,7 +68,7 @@ export const joinGameUpdate = (variables) => (proxy, { data: { joinGame } }) => 
 };
 
 const gameChangeSubscription = gql`
-    subscription gameStateChanged($uuid: String!) {
+    subscription gameStateChanged($uuid: ID!) {
       gameStateChanged(uuid: $uuid) {
         ...gameFragment
       }

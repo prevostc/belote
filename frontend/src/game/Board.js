@@ -4,7 +4,8 @@ import { compose, pure, branch, renderComponent, lifecycle, withState } from 're
 import JoinGame from './JoinGame';
 import Bidding from './Bidding';
 import Playing from './Playing';
-import Card from './Card';
+import Card from './component/Card';
+import Color from './component/Color';
 import { gameQuery, subscribeToChange } from "../api/game";
 import { DebugPlayerSwitch } from './DebugPlayerSwitch';
 
@@ -48,7 +49,7 @@ export const Board = enhance(({ player, setPlayer, game: { uuid, table, phase, p
     const p = player ? <div>{player.uuid} - {player.name} - {player.spot}</div> : <div></div>;
     const renderContract = (contract) => contract === null
         ? (<span></span>)
-        : <div>{contract.value} - {contract.player.spot} - {contract.player.team}</div>
+        : <div><Color color={contract.trump}/> - {contract.value} - {contract.player.spot} - {contract.player.team}</div>
     const renderPhase = (phase) => {
         switch (phase) {
             case 'INITIAL':

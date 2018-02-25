@@ -40,22 +40,6 @@ const schema = `
       WEST
     }
     
-    type Contract {
-        player: Player!
-        value: Int!
-    }
-
-    type Game {
-        uuid: ID!
-        players: [Player]!
-        phase: String!
-        bids: [Bid]!
-        cards(playerUuid: String!): [Card]!
-        actionNeededFrom: Player
-        table: [Card]!
-        contract: Contract
-    }
-    
     enum CardColor {
         SPADES
         HEARTS
@@ -72,6 +56,23 @@ const schema = `
         V9
         V8
         V7
+    }
+    
+    type Contract {
+        player: Player!
+        trump: CardColor!
+        value: Int!
+    }
+
+    type Game {
+        uuid: ID!
+        players: [Player]!
+        phase: String!
+        bids: [Bid]!
+        cards(playerUuid: ID!): [Card]!
+        actionNeededFrom: Player
+        table: [Card]!
+        contract: Contract
     }
     
     type Bid {
@@ -99,15 +100,15 @@ const schema = `
     }
     
     type Query {
-        game(uuid: String!): Game!
+        game(uuid: ID!): Game!
     }
     
     type Mutation {
         createGame(name: String): Game!
-        joinGame(gameUuid: String!, playerUuid: String, playerName: String!, spot: PlayerSpot!): Player!
-        bid(gameUuid: String!, playerUuid: String!, value: Int!, color: CardColor!): Game!
-        pass(gameUuid: String!, playerUuid: String!): Game!
-        playCard(gameUuid: String!, playerUuid: String!, color: CardColor!, motif: CardMotif!): Game!
+        joinGame(gameUuid: ID!, playerUuid: ID, playerName: String!, spot: PlayerSpot!): Player!
+        bid(gameUuid: ID!, playerUuid: ID!, value: Int!, color: CardColor!): Game!
+        pass(gameUuid: ID!, playerUuid: ID!): Game!
+        playCard(gameUuid: ID!, playerUuid: ID!, color: CardColor!, motif: CardMotif!): Game!
     }
     
     type Subscription {

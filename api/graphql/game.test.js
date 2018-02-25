@@ -114,6 +114,7 @@ describe('graphql game api', () => {
                             team
                         }
                         value
+                        trump
                     }
                 }
             }`,
@@ -152,6 +153,7 @@ describe('graphql game api', () => {
         expect(contract.player).toBeDefined();
         expect(contract.player.uuid).toEqual("1");
         expect(contract.player.team).toEqual("NORTH_SOUTH");
+        expect(contract.trump).toEqual("SPADES");
         expect(contract.value).toEqual(80);
     });
 
@@ -165,7 +167,7 @@ describe('graphql game api', () => {
         });
         const response = await graphqlQuery({
             query: `
-                mutation joinGame($gameUuid: String!, $playerUuid: String, $playerName: String!, $spot: PlayerSpot!) {
+                mutation joinGame($gameUuid: ID!, $playerUuid: ID, $playerName: String!, $spot: PlayerSpot!) {
                     joinGame(gameUuid: $gameUuid, playerUuid: $playerUuid, playerName: $playerName, spot: $spot) {
                         uuid
                         name
@@ -211,7 +213,7 @@ describe('graphql game api', () => {
         });
         const response = await graphqlQuery({
             query: `
-                mutation joinGame($gameUuid: String!, $playerUuid: String, $playerName: String!, $spot: PlayerSpot!) {
+                mutation joinGame($gameUuid: ID!, $playerUuid: ID, $playerName: String!, $spot: PlayerSpot!) {
                     joinGame(gameUuid: $gameUuid, playerUuid: $playerUuid, playerName: $playerName, spot: $spot) {
                         uuid
                         name
@@ -259,7 +261,7 @@ describe('graphql game api', () => {
         });
         const response = await graphqlQuery({
             query: `
-                mutation bid($gameUuid: String!, $playerUuid: String!, $value: Int!, $color: CardColor!) {
+                mutation bid($gameUuid: ID!, $playerUuid: ID!, $value: Int!, $color: CardColor!) {
                     bid(gameUuid: $gameUuid, playerUuid: $playerUuid, value: $value, color: $color) {
                         uuid
                         bids {
@@ -303,7 +305,7 @@ describe('graphql game api', () => {
         });
         const response = await graphqlQuery({
             query: `
-                mutation pass($gameUuid: String!, $playerUuid: String!) {
+                mutation pass($gameUuid: ID!, $playerUuid: ID!) {
                     pass(gameUuid: $gameUuid, playerUuid: $playerUuid) {
                         uuid
                         bids {
@@ -353,7 +355,7 @@ describe('graphql game api', () => {
 
         const response = await graphqlQuery({
             query: `
-                mutation playCard($gameUuid: String!, $playerUuid: String!, $color: CardColor!, $motif: CardMotif!) {
+                mutation playCard($gameUuid: ID!, $playerUuid: ID!, $color: CardColor!, $motif: CardMotif!) {
                     playCard(gameUuid: $gameUuid, playerUuid: $playerUuid, color: $color, motif: $motif) {
                         uuid
                         players {

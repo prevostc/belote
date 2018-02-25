@@ -136,7 +136,8 @@ let formatContract = (g: Engine.gameState) => {
     switch g.phase {
         | Phase.Playing => Js.Nullable.return([%bs.obj {
            "player": g.players |> Player.PlayerMap.find(g.contractPlayer) |> formatPlayer(g.uuid, g.contractPlayer),
-           "value": g.contractValue
+           "value": g.contractValue,
+           "trump": g.trump |> formatCardColor
        }])
        | _ => Js.Nullable.null
     }
