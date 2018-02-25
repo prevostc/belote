@@ -5,7 +5,11 @@ import { compose, pure } from 'recompose';
 import {
     BrowserRouter as Router,
     Route
-} from 'react-router-dom'
+} from 'react-router-dom';
+
+const uuid = require('uuid/v4');
+
+const playerUuid = uuid();
 
 const enhance = compose(
     pure
@@ -14,8 +18,8 @@ const enhance = compose(
 export default enhance(() => {
   return <Router>
       <div>
-          <Route exact path="/" render={() => <Menu />} />
-          <Route path="/game/:uuid" render={({ match }) => <Board uuid={match.params.uuid} /> } />
+          <Route exact path="/" render={() => <Menu playerUuid={playerUuid} />} />
+          <Route path="/game/:uuid" render={({ match }) => <Board playerUuid={playerUuid} gameUuid={match.params.uuid} /> } />
       </div>
   </Router>
 });

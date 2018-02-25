@@ -1,51 +1,25 @@
 import React from 'react';
-import { graphql } from 'react-apollo';
-import { compose, pure, branch, renderComponent, lifecycle, withState } from 'recompose';
+import { compose, pure, withState } from 'recompose';
 import JoinGame from './JoinGame';
 import Bidding from './Bidding';
 import Playing from './Playing';
 import Card from './component/Card';
 import Color from './component/Color';
-import { gameQuery, subscribeToChange } from "../api/game";
-import { DebugPlayerSwitch } from './DebugPlayerSwitch';
+import DebugPlayerSwitch from './component/DebugPlayerSwitch';
+import {enhanceWithGame} from "../api";
 
 const testPlayer = { uuid: "1", name: "north" };
 
 const enhance = compose(
-    graphql(gameQuery, {
-        props: ({ data }) => {
-            const { loading, error, game } = data;
-            return ({
-                loading,
-                error,
-                game,
-                subscribeToChange: subscribeToChange(data),
-            })
-        },
-        options: ({ uuid }) => ({
-            variables: { uuid },
-        }),
+    enhanceWithGame((game) => {
+        const { uuid, table, phase, players, contract } = game;
+        return { table, phase, players, contract, gameUuid: uuid };
     }),
-    lifecycle({
-        componentWillMount() {
-            this.props.subscribeToChange({
-                uuid: this.props.uuid,
-            });
-        }
-    }),
-    branch(
-        props => props.loading,
-        renderComponent(() => <div>LOADING</div>),
-    ),
-    branch(
-        props => props.error,
-        renderComponent(({ error }) => <div>ERROR: {JSON.stringify(error)}</div>),
-    ),
     withState('player', 'setPlayer', testPlayer),
     pure
 );
 
-export const Board = enhance(({ player, setPlayer, game: { uuid, table, phase, players, contract }}) => {
+export const Board = enhance(({ player, setPlayer, gameUuid, table, phase, players, contract }) => {
     const p = player ? <div>{player.uuid} - {player.name} - {player.spot}</div> : <div></div>;
     const renderContract = (contract) => contract === null
         ? (<span></span>)
@@ -53,11 +27,11 @@ export const Board = enhance(({ player, setPlayer, game: { uuid, table, phase, p
     const renderPhase = (phase) => {
         switch (phase) {
             case 'INITIAL':
-                return <JoinGame playerUuid={player ? player.uuid : null} onGameJoined={setPlayer} gameUuid={uuid}/>;
+                return <JoinGame playerUuid={player ? player.uuid : null} onGameJoined={setPlayer} gameUuid={gameUuid} />;
             case 'BIDDING':
-                return <Bidding playerUuid={player ? player.uuid : null} gameUuid={uuid} />
+                return <Bidding playerUuid={player.uuid} gameUuid={gameUuid} />
             case 'PLAYING':
-                return <Playing playerUuid={player ? player.uuid : null} gameUuid={uuid} />
+                return <Playing playerUuid={player.uuid} gameUuid={gameUuid} />
             default:
                 return <div>Phase {phase}</div>
         }
@@ -70,7 +44,7 @@ export const Board = enhance(({ player, setPlayer, game: { uuid, table, phase, p
           <h2>Debug player switch</h2>
           <DebugPlayerSwitch setPlayer={setPlayer} />
           <h1>Game</h1>
-          <div>{uuid}</div>
+          <div>{ gameUuid }</div>
           <h2>Other Players</h2>
           <ul>
             {[...players]

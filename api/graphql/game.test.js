@@ -1,4 +1,5 @@
 const request = require('supertest');
+const uuid = require('uuid/v4');
 const app = require('../app');
 const store = require('../store/gameStore');
 const { engine, format } = require('../engine');
@@ -167,7 +168,7 @@ describe('graphql game api', () => {
         });
         const response = await graphqlQuery({
             query: `
-                mutation joinGame($gameUuid: ID!, $playerUuid: ID, $playerName: String!, $spot: PlayerSpot!) {
+                mutation joinGame($gameUuid: ID!, $playerUuid: ID!, $playerName: String!, $spot: PlayerSpot!) {
                     joinGame(gameUuid: $gameUuid, playerUuid: $playerUuid, playerName: $playerName, spot: $spot) {
                         uuid
                         name
@@ -188,7 +189,7 @@ describe('graphql game api', () => {
                 }`,
             variables: {
                 gameUuid: 'abc',
-                playerUuid: null,
+                playerUuid: uuid(),
                 playerName: 'Mitch',
                 spot: "EAST",
             }
@@ -213,7 +214,7 @@ describe('graphql game api', () => {
         });
         const response = await graphqlQuery({
             query: `
-                mutation joinGame($gameUuid: ID!, $playerUuid: ID, $playerName: String!, $spot: PlayerSpot!) {
+                mutation joinGame($gameUuid: ID!, $playerUuid: ID!, $playerName: String!, $spot: PlayerSpot!) {
                     joinGame(gameUuid: $gameUuid, playerUuid: $playerUuid, playerName: $playerName, spot: $spot) {
                         uuid
                         name

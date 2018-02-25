@@ -106,14 +106,14 @@ const schema = `
     
     type Mutation {
         createGame(name: String): Game!
-        joinGame(gameUuid: ID!, playerUuid: ID, playerName: String!, spot: PlayerSpot!): Player!
+        joinGame(gameUuid: ID!, playerUuid: ID!, playerName: String!, spot: PlayerSpot!): Player!
         bid(gameUuid: ID!, playerUuid: ID!, value: Int!, color: CardColor!): Game!
         pass(gameUuid: ID!, playerUuid: ID!): Game!
         playCard(gameUuid: ID!, playerUuid: ID!, color: CardColor!, motif: CardMotif!): Game!
     }
     
     type Subscription {
-        gameStateChanged(uuid: String!): Game!
+        gameStateChanged(uuid: ID!): Game!
     }
 `;
 
@@ -198,8 +198,7 @@ const resolvers = {
         },
         joinGame: async(ctx, args) => {
             // @todo: input check
-            const { gameUuid, playerName, spot } = args;
-            const playerUuid = args.playerUuid || uuid();
+            const { gameUuid, playerName, spot, playerUuid } = args;
             let gameObj = await gameStore.get(gameUuid);
             const gameSpot = SPOT[spot];
 

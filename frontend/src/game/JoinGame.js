@@ -1,35 +1,10 @@
 import React from 'react';
-import { graphql } from 'react-apollo';
 import PropTypes from 'prop-types';
-import {compose, pure, withState, withHandlers, renderComponent, branch} from 'recompose';
-import { joinGameQuery, joinGameUpdate } from "../api/game";
+import {compose, pure, withState, withHandlers} from 'recompose';
+import {connectJoinGameMutation} from "../api";
 
 const enhance = compose(
-    graphql(joinGameQuery, {
-        name: 'joinGame',
-        props: ({ joinGame, ownProps: { playerUuid, onGameJoined, gameUuid } }) => ({
-            joinGame: async (name, spot) => {
-                const variables = { uuid: gameUuid, playerUuid, name, spot };
-                const data = await joinGame({
-                    variables,
-                    update: joinGameUpdate(variables),
-                });
-                onGameJoined && data.data.joinGame && onGameJoined({
-                    uuid: data.data.joinGame.uuid,
-                    name: data.data.joinGame.name,
-                    spot: data.data.joinGame.spot,
-                });
-            }
-        }),
-    }),
-    branch(
-        props => props.loading,
-        renderComponent(() => <div>LOADING</div>),
-    ),
-    branch(
-        props => props.error,
-        renderComponent(({ error }) => <div>ERROR: {JSON.stringify(error)}</div>),
-    ),
+    connectJoinGameMutation,
     withState('name', 'updateName', ''),
     withHandlers({
         onNameChange: props => event => props.updateName(event.target.value),

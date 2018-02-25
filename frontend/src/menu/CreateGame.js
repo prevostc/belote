@@ -1,30 +1,10 @@
 import React from 'react';
-import { graphql } from 'react-apollo';
-import gql from 'graphql-tag';
 import PropTypes from 'prop-types';
 import {compose, pure, withState, withHandlers, renderComponent, branch} from 'recompose';
+import {connectCreateGameMutation} from "../api";
 
 const enhance = compose(
-    graphql(gql`
-            mutation createGame($name: String!) {
-                createGame(name: $name) {
-                    uuid
-                    players {
-                        uuid
-                        name
-                        spot
-                    }
-                }
-            }
-        `, {
-        name: 'createGame',
-        props: ({ createGame, ownProps: { onGameCreated } }) => ({
-            createGame: async (name) => {
-                const data = await createGame({ variables: {name} })
-                onGameCreated(data.data.createGame.uuid);
-            }
-        }),
-    }),
+    connectCreateGameMutation,
     branch(
         props => props.loading,
         renderComponent(() => <div>LOADING</div>),

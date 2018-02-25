@@ -1,65 +1,12 @@
 import React from 'react';
-import {graphql} from "react-apollo/index";
-import {branch, compose, lifecycle, pure, renderComponent, withHandlers, withState} from "recompose";
-import {BidsQuery, bidMutation, bidMutationUpdate, subscribeToChange, passMutation, passMutationUpdate} from "../api/bid";
+import {compose, pure, withHandlers, withState} from "recompose";
+import { connectBidsMutations } from "../api";
 
 // @todo: get those from the engine lib
 const colors = ['SPADES', 'HEARTS', 'DIAMONDS', 'CLUBS'];
 
 const enhance = compose(
-    graphql(BidsQuery, {
-        props: ({ data }) => {
-            const { loading, error, game } = data;
-            return ({
-                loading,
-                error,
-                bids: game ? game.bids : [],
-                subscribeToChange: subscribeToChange(data),
-            })
-        },
-        options: ({ gameUuid, playerUuid }) => ({
-            variables: { gameUuid, playerUuid },
-        }),
-    }),
-    graphql(bidMutation, {
-        name: 'bid',
-        props: ({ bid, ownProps: { gameUuid, playerUuid } }) => ({
-            bid: (value, color) => {
-                const variables = { gameUuid, playerUuid, value, color };
-                return bid({
-                    variables,
-                    update: bidMutationUpdate(variables),
-                });
-            }
-        }),
-    }),
-    graphql(passMutation, {
-        name: 'pass',
-        props: ({ pass, ownProps: { gameUuid, playerUuid } }) => ({
-            pass: () => {
-                const variables = { gameUuid, playerUuid };
-                return pass({
-                    variables,
-                    update: passMutationUpdate(variables),
-                });
-            }
-        }),
-    }),
-    lifecycle({
-        componentWillMount() {
-            this.props.subscribeToChange({
-                uuid: this.props.gameUuid,
-            });
-        }
-    }),
-    branch(
-        props => props.loading,
-        renderComponent(() => <div>LOADING</div>),
-    ),
-    branch(
-        props => props.error,
-        renderComponent(({ error }) => <div>ERROR: {JSON.stringify(error)}</div>),
-    ),
+    connectBidsMutations,
     withState('value', 'updateValue', 80),
     withHandlers({
         onValueChange: props => event => props.updateValue(event.target.value),
