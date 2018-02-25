@@ -102,6 +102,29 @@ export const connectCreateGameMutation = compose(
     })
 );
 
+// allow multiple components to subscribe
+let memoizedSubscribeToChangeCache = {};
+let memoizedSubscribeToChange = queryResult => ({ playerUuid, gameUuid }) => {
+    const cacheKey = gameUuid + '-' + playerUuid;
+    if (! memoizedSubscribeToChangeCache[cacheKey]) {
+        memoizedSubscribeToChangeCache[cacheKey] = queryResult.subscribeToMore({
+            document: gameChangeSubscription,
+            variables: {playerUuid, gameUuid},
+            updateQuery: (prev, {subscriptionData}) => {
+                if (!subscriptionData.data) {
+                    return prev;
+                }
+                const newGame = subscriptionData.data.gameStateChanged;
+                return {
+                    ...prev,
+                    game: newGame
+                };
+            },
+        })
+    }
+    return memoizedSubscribeToChangeCache[cacheKey];
+};
+
 export const enhanceWithGame = (mapper) => {
     let unsubscribe = null;
 
@@ -116,20 +139,7 @@ export const enhanceWithGame = (mapper) => {
                 const res = {
                     loading,
                     error,
-                    subscribeToChange: ({playerUuid, gameUuid}) => data.subscribeToMore({
-                        document: gameChangeSubscription,
-                        variables: {playerUuid, gameUuid},
-                        updateQuery: (prev, {subscriptionData}) => {
-                            if (!subscriptionData.data) {
-                                return prev;
-                            }
-                            const newGame = subscriptionData.data.gameStateChanged;
-                            return {
-                                ...prev,
-                                game: newGame
-                            };
-                        },
-                    })
+                    subscribeToChange: memoizedSubscribeToChange(data),
                 };
                 return game ? { ...res, ...mapper(game) } : res;
             },

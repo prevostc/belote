@@ -63,6 +63,11 @@ const schema = `
         trump: CardColor!
         value: Int!
     }
+    
+    type Score {
+        contract: Contract!
+        winner: Team!
+    }
 
     type Game {
         uuid: ID!
@@ -72,7 +77,8 @@ const schema = `
         cards(playerUuid: ID!): [Card]!
         actionNeededFrom: Player
         table: [Card]!
-        contract: Contract
+        contract: Contract,
+        scores: [Score]!
     }
     
     type Bid {
@@ -179,6 +185,10 @@ const resolvers = {
         table: async (game) => {
             const gameObj  = await gameStore.get(game.uuid);
             return format.formatCards(engine.getTableCards(gameObj));
+        },
+        scores: async (game) => {
+            const gameObj  = await gameStore.get(game.uuid);
+            return format.formatScores(gameObj);
         },
     },
     Query: {

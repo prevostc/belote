@@ -37,7 +37,6 @@ let cardPlayValidation = (
                 let hadHigherMotif = CardOrder.motifGreaterThan(CardOrder.trumpOrder, m);
                 /* you played a higher trump */
                 if (hadHigherMotif(card.motif)) {
-                    Js.log("here2");
                     ValidCardPlay
 
                 /* you had a higher trump, but did not played it */

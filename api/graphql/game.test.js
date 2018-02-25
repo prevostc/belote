@@ -15,7 +15,7 @@ function graphqlQuery({ query, variables }) {
     return req
 }
 
-async function createGameStub({ uuid, players = [], bids = [] }) {
+async function createGameStub({ uuid, players = [], bids = [], cardsToPlay = 0 }) {
     let game = engine.createGame(uuid);
     game = players.reduce((game, { uuid: playerUuid, spot, name }) => {
         return engine.raiseErrorOrUnboxState(engine.joinGame(playerUuid, name, spot, game));
@@ -27,6 +27,29 @@ async function createGameStub({ uuid, players = [], bids = [] }) {
                 : engine.bid(bid.uuid, bid.value, bid.color, game)
         );
     }, game);
+
+    let loopBreaker = 100;
+    while (cardsToPlay > 0 && loopBreaker > 0) {
+        loopBreaker--;
+
+        const playableCards = players
+            .map(({uuid: playerUuid}) => {
+                const cards = format.formatCards(engine.getCards(playerUuid, game));
+                return cards.map(card => ({
+                    playerUuid,
+                    ...card,
+                }))
+            })
+            .reduce((all, cards) => all.concat(cards), [])
+            .filter(card => engine.canCardBePlayed(card.playerUuid, CARD_COLOR[card.color], CARD_MOTIF[card.motif], game))
+        ;
+        if (playableCards.length) {
+            const card = playableCards[0];
+            game = engine.raiseErrorOrUnboxState(engine.playCard(card.playerUuid, CARD_COLOR[card.color], CARD_MOTIF[card.motif], game));
+            cardsToPlay--;
+        }
+    }
+
     await store.save(game);
     return game;
 }
@@ -57,7 +80,7 @@ describe('graphql game api', () => {
 
         // should not have players yet
         expect(gameData.players).toEqual([])
-    })
+    });
 
     it('should fetch a stored game', async() => {
         await createGameStub({
@@ -117,6 +140,17 @@ describe('graphql game api', () => {
                         value
                         trump
                     }
+                    scores {
+                        contract {
+                            player {
+                                uuid
+                                team
+                            }
+                            value
+                            trump
+                        }
+                        winner
+                    }
                 }
             }`,
         });
@@ -146,7 +180,7 @@ describe('graphql game api', () => {
         expect(gameData.playerCards).toBeDefined();
         expect(gameData.playerCards.length).toEqual(8);
         const table = gameData.table;
-        expect(table).toEqual([]);
+        expect(table.length).toEqual(0);
 
         // contract
         expect(gameData.contract).toBeDefined();
@@ -383,5 +417,53 @@ describe('graphql game api', () => {
         const player = game.players.find(p => p.uuid === '2');
         expect(player.uuid).toEqual('2');
         expect(player.cards.length).toEqual(7);
+    });
+
+
+    it('should return scores', async() => {
+        await createGameStub({
+            uuid: 'abc',
+            players: [
+                {uuid: '1', spot: SPOT.NORTH, name: 'a' },
+                {uuid: '2', spot: SPOT.EAST, name: 'b' },
+                {uuid: '3', spot: SPOT.SOUTH, name: 'c' },
+                {uuid: '4', spot: SPOT.WEST, name: 'd' },
+            ],
+            bids: [
+                { pass: false, uuid: '1', value: 80, color: CARD_COLOR.SPADES },
+                { pass: true, uuid: '2' },
+                { pass: true, uuid: '3' },
+                { pass: true, uuid: '4' },
+            ],
+            cardsToPlay: 32
+        });
+        const response = await graphqlQuery({
+            query: `{
+                game(uuid: "abc") {
+                    uuid
+                    scores {
+                        contract {
+                            player {
+                                uuid
+                                team
+                            }
+                            value
+                            trump
+                        }
+                        winner
+                    }
+                }
+            }`,
+        });
+        expect(response.body.errors).not.toBeDefined();
+
+        const gameData = response.body.data.game;
+
+        // score
+        expect(gameData.scores).toBeDefined();
+        expect(gameData.scores.length).toEqual(1);
+        const score = gameData.scores[0];
+        expect(score.contract.value).toEqual(80);
+        expect(score.contract.trump).toEqual("SPADES");
     });
 })

@@ -42,11 +42,11 @@ describe("Score", () => {
       graveyard |> contractToScore(Deck.Spades, 10, Player.North),
       graveyard |> contractToScore(Deck.Diamonds, 10, Player.South),
     ) |> expect |> toEqual((
-        Score.{team: Player.EastWest, score: 10},
-        Score.{team: Player.NorthSouth, score: 20},
-        Score.{team: Player.EastWest, score: 10},
-        Score.{team: Player.NorthSouth, score: 10},
-        Score.{team: Player.EastWest, score: 10},
+        Score.{trump: Deck.Spades, winner: Player.EastWest, score: 10, contractValue: 10, contractPlayer: Player.East},
+        Score.{trump: Deck.Spades, winner: Player.NorthSouth, score: 20, contractValue: 20, contractPlayer: Player.East},
+        Score.{trump: Deck.Diamonds, winner: Player.EastWest, score: 10, contractValue: 10, contractPlayer: Player.West},
+        Score.{trump: Deck.Spades, winner: Player.NorthSouth, score: 10, contractValue: 10, contractPlayer: Player.North},
+        Score.{trump: Deck.Diamonds, winner: Player.EastWest, score: 10, contractValue: 10, contractPlayer: Player.South},
     ))
   });
 
@@ -57,10 +57,10 @@ describe("Score", () => {
       baseGraveyard |> Player.PlayerMap.add(Player.East, [Deck.{color: Deck.Spades, motif: Deck.Ace}]) |> contractToScore(Deck.Spades, Bid.capot, Player.North),
       baseGraveyard |> Player.PlayerMap.add(Player.North, [Deck.{color: Deck.Spades, motif: Deck.Ace}]) |> contractToScore(Deck.Spades, Bid.capot, Player.East),
     ) |> expect |> toEqual((
-        Score.{team: Player.EastWest, score: Bid.capot},
-        Score.{team: Player.EastWest, score: Bid.capot},
-        Score.{team: Player.EastWest, score: Bid.capot},
-        Score.{team: Player.NorthSouth, score: Bid.capot},
+        Score.{trump: Deck.Spades, winner: Player.EastWest, score: Bid.capot, contractValue: Bid.capot, contractPlayer: Player.East},
+        Score.{trump: Deck.Spades, winner: Player.EastWest, score: Bid.capot, contractValue: Bid.capot, contractPlayer: Player.East},
+        Score.{trump: Deck.Spades, winner: Player.EastWest, score: Bid.capot, contractValue: Bid.capot, contractPlayer: Player.North},
+        Score.{trump: Deck.Spades, winner: Player.NorthSouth, score: Bid.capot, contractValue: Bid.capot, contractPlayer: Player.East},
     ))
   });
 
@@ -71,10 +71,10 @@ describe("Score", () => {
       baseGraveyard |> Player.PlayerMap.add(Player.East, [Deck.{color: Deck.Spades, motif: Deck.Ace}]) |> contractToScore(Deck.Spades, Bid.general, Player.North),
       baseGraveyard |> Player.PlayerMap.add(Player.North, [Deck.{color: Deck.Spades, motif: Deck.Ace}]) |> contractToScore(Deck.Spades, Bid.general, Player.East),
     ) |> expect |> toEqual((
-        Score.{team: Player.EastWest, score: Bid.general},
-        Score.{team: Player.NorthSouth, score: Bid.general},
-        Score.{team: Player.EastWest, score: Bid.general},
-        Score.{team: Player.NorthSouth, score: Bid.general},
+        Score.{trump: Deck.Spades, winner: Player.EastWest, score: Bid.general, contractValue: Bid.general, contractPlayer: Player.East},
+        Score.{trump: Deck.Spades, winner: Player.NorthSouth, score: Bid.general, contractValue: Bid.general, contractPlayer: Player.East},
+        Score.{trump: Deck.Spades, winner: Player.EastWest, score: Bid.general, contractValue: Bid.general, contractPlayer: Player.North},
+        Score.{trump: Deck.Spades, winner: Player.NorthSouth, score: Bid.general, contractValue: Bid.general, contractPlayer: Player.East},
     ))
   });
 });

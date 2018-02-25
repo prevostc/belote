@@ -1,7 +1,9 @@
-open Player;
 
 type score = {
-    team: team,
+    winner: Player.team,
+    trump: Deck.color,
+    contractValue: int,
+    contractPlayer: Player.player,
     score: int,
 };
 
@@ -34,18 +36,18 @@ let contractToScore = (trump, contractValue, contractPlayer, graveyard) => {
     if (contractValue === Bid.general) {
         let othersCards = getCards(p => p !== contractPlayer);
         let contractWon = (othersCards |> List.length) === 0;
-        { team: contractWon ? playerTeam : Player.getOtherTeam(playerTeam), score: contractValue }
+        { trump: trump, winner: contractWon ? playerTeam : Player.getOtherTeam(playerTeam), score: contractValue, contractValue: contractValue, contractPlayer: contractPlayer }
 
     /* contract team must win every cards */
     } else if (contractValue === Bid.capot) {
         let othersCards = getCards(p => Player.getTeam(p) !== playerTeam);
         let contractWon = (othersCards |> List.length) === 0;
-        { team: contractWon ? playerTeam : Player.getOtherTeam(playerTeam), score: contractValue }
+        { trump: trump, winner: contractWon ? playerTeam : Player.getOtherTeam(playerTeam), score: contractValue, contractValue: contractValue, contractPlayer: contractPlayer }
 
     /* contract team must make more points than contractValue */
     } else {
         let teamCards = getCards(p => Player.getTeam(p) === playerTeam);
         let contractWon = getCardsScore(trump, teamCards) >= contractValue;
-        { team: contractWon ? playerTeam : Player.getOtherTeam(playerTeam), score: contractValue }
+        { trump: trump, winner: contractWon ? playerTeam : Player.getOtherTeam(playerTeam), score: contractValue, contractValue: contractValue, contractPlayer: contractPlayer }
     }
 };

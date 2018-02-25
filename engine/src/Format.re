@@ -143,6 +143,24 @@ let formatContract = (g: Engine.gameState) => {
     }
 };
 
+
+let formatScore = (g: Engine.gameState, s: Score.score) => [%bs.obj {
+    "winner": formatTeam(s.winner),
+    "contract": [%bs.obj {
+        "player": g.players |> Player.PlayerMap.find(s.contractPlayer) |> formatPlayer(g.uuid, s.contractPlayer),
+        "value": s.contractValue,
+        "trump": s.trump |> formatCardColor
+    }],
+    "contractValue": s.contractValue,
+    "contractPlayer": g.players |> Player.PlayerMap.find(s.contractPlayer) |> formatPlayer(g.uuid, s.contractPlayer),
+    "score": s.score
+}];
+
+let formatScores = (g: Engine.gameState) => g.scores
+    |> List.map(formatScore(g))
+    |> Array.of_list;
+
+
 /* @todo: format hands, bids, deck and scores */
 let formatGame = (g: Engine.gameState) => {
     [%bs.obj {

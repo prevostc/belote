@@ -11,7 +11,7 @@ const enhance = compose(
     pure
 );
 
-export const Playing = enhance(({ cards, playCard }) => {
+export const PlayerCards = enhance(({ cards, playCard }) => {
     return (
       <div>
           <h1>Card</h1>
@@ -25,4 +25,4 @@ export const Playing = enhance(({ cards, playCard }) => {
     );
 });
 
-export default Playing;
+export default PlayerCards;

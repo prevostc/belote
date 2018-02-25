@@ -33,6 +33,17 @@ export const cardFragment = gql`
     }
 `;
 
+export const contractFragment = gql`
+    fragment contractFragment on Contract {
+        value
+        trump
+        player {
+            ...playerFragment
+        }
+    }
+    ${playerFragment}
+`;
+
 export const gameFragment = gql`
     fragment gameFragment on Game {
         uuid
@@ -45,11 +56,7 @@ export const gameFragment = gql`
             ...playerFragment
         }
         contract {
-            value
-            trump
-            player {
-                ...playerFragment
-            }
+            ...contractFragment
         }
         cards (playerUuid: $playerUuid) {
             ...cardFragment
@@ -57,11 +64,18 @@ export const gameFragment = gql`
         bids {
             ...bidFragment
         }
+        scores {
+            contract {
+                ...contractFragment
+            }
+            winner
+        }
     }
     
     ${playerFragment}
     ${bidFragment}
     ${cardFragment}
+    ${contractFragment}
 `;
 
 export const gameQuery = gql`

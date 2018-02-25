@@ -188,6 +188,7 @@ let rec dispatch = (action: action, state: gameState): actionResult => {
                 | CardPlay.ValidCardPlay => {
                     let newTable = state.table @ [c];
                     let turnIsOver = (newTable |> List.length) === 4;
+
                     if (turnIsOver) {
                         let winningPlayer = TurnWinner.getWinningPlayer(state.first, state.trump, newTable);
                         let winningPlayerGraveyard = state.graveyard |> Player.PlayerMap.find(winningPlayer);
@@ -198,7 +199,7 @@ let rec dispatch = (action: action, state: gameState): actionResult => {
                             graveyard: state.graveyard |> Player.PlayerMap.add(winningPlayer, winningPlayerGraveyard @ newTable),
                             first: winningPlayer
                         };
-                        let roundIsOver = (state.hands |> Player.PlayerMap.find(Player.North) |> List.length) <= 0;
+                        let roundIsOver = (newState.hands |> Player.PlayerMap.find(Player.North) |> List.length) <= 0;
 
                         /* round is over, scores are written down, dealer is changed, cards are regrouped and cut and dealt */
                         if (roundIsOver) {
@@ -272,7 +273,7 @@ let getActionNeededFromPlayerAndSpot = (state: gameState) => {
     }
 };
 
-let canCardBePlayed= (uuid: playerUuid, color: Deck.color, motif: Deck.motif, state: gameState) => {
+let canCardBePlayed = (uuid: playerUuid, color: Deck.color, motif: Deck.motif, state: gameState) => {
     let p = state |> getPlayerSpot(uuid);
     let c = Deck.{color: color, motif: motif};
     let playerHand = state.hands |> Player.PlayerMap.find(p);
