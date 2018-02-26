@@ -1,6 +1,7 @@
 
 type score = {
     winner: Player.team,
+    lastTrickWinner: Player.player,
     trump: Deck.color,
     contractValue: int,
     contractPlayer: Player.player,
@@ -20,11 +21,11 @@ let getCardScore = (trump: Deck.color, card: Deck.card) => {
     }
 };
 
-/* @todo: 10 de der, belotte */
+/* @todo: declarations (belotte) */
 let getCardsScore = (trump: Deck.color, cards: list(Deck.card)) => cards |> List.fold_left((sum, v) => sum + getCardScore(trump, v), 0);
 
 /* @todo: handle special case where you made the contract but made less points than the adversary */
-let contractToScore = (trump, contractValue, contractPlayer, graveyard) => {
+let contractToScore = (trump, lastTrickWinner, contractValue, contractPlayer, graveyard) => {
     let playerTeam = Player.getTeam(contractPlayer);
     let getCards = (filter) => [Player.North, Player.South, Player.East, Player.West]
         |> List.filter(filter)
@@ -36,18 +37,19 @@ let contractToScore = (trump, contractValue, contractPlayer, graveyard) => {
     if (contractValue === Bid.general) {
         let othersCards = getCards(p => p !== contractPlayer);
         let contractWon = (othersCards |> List.length) === 0;
-        { trump: trump, winner: contractWon ? playerTeam : Player.getOtherTeam(playerTeam), score: contractValue, contractValue: contractValue, contractPlayer: contractPlayer }
+        { trump, lastTrickWinner, winner: contractWon ? playerTeam : Player.getOtherTeam(playerTeam), score: contractValue, contractValue, contractPlayer }
 
     /* contract team must win every cards */
     } else if (contractValue === Bid.capot) {
         let othersCards = getCards(p => Player.getTeam(p) !== playerTeam);
         let contractWon = (othersCards |> List.length) === 0;
-        { trump: trump, winner: contractWon ? playerTeam : Player.getOtherTeam(playerTeam), score: contractValue, contractValue: contractValue, contractPlayer: contractPlayer }
+        { trump, lastTrickWinner, winner: contractWon ? playerTeam : Player.getOtherTeam(playerTeam), score: contractValue, contractValue, contractPlayer }
 
     /* contract team must make more points than contractValue */
     } else {
         let teamCards = getCards(p => Player.getTeam(p) === playerTeam);
-        let contractWon = getCardsScore(trump, teamCards) >= contractValue;
-        { trump: trump, winner: contractWon ? playerTeam : Player.getOtherTeam(playerTeam), score: contractValue, contractValue: contractValue, contractPlayer: contractPlayer }
+        let score = getCardsScore(trump, teamCards) + (Player.getTeam(lastTrickWinner) === playerTeam ? 10 : 0);
+        let contractWon = score >= contractValue;
+        { trump, lastTrickWinner, winner: contractWon ? playerTeam : Player.getOtherTeam(playerTeam), score: contractValue, contractValue, contractPlayer }
     }
 };

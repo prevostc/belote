@@ -207,7 +207,7 @@ let rec dispatch = (action: action, state: gameState): actionResult => {
                             let deck = getCards(East) @ getCards(West) @ getCards(North) @ getCards(South);
                             let rnd = deck |> List.length |> Random.int;
                             let dealer = Player.nextPlayer(newState.dealer);
-                            let newScore = Score.contractToScore(state.trump, state.contractValue, state.contractPlayer, state.graveyard);
+                            let newScore = Score.contractToScore(state.trump, winningPlayer, state.contractValue, state.contractPlayer, state.graveyard);
                             State({
                                 ...newState,
                                 dealer: dealer,

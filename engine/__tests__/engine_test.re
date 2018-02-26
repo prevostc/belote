@@ -288,7 +288,7 @@ describe("Engine Play", () => {
         Player.North,
         [],
         [],
-        [Score.{trump: Deck.Spades, winner: Player.NorthSouth, score: 90, contractValue: 90, contractPlayer: North}],
+        [Score.{trump: Deck.Spades, lastTrickWinner: Player.North, winner: Player.NorthSouth, score: 90, contractValue: 90, contractPlayer: North}],
         8
     ));
   });
