@@ -1,6 +1,6 @@
 import React from 'react';
 import {compose, pure} from "recompose";
-import CardBack from './Card_back.svg';
+import CardBack from './HiddenCard.svg';
 
 const enhance = compose(
     pure

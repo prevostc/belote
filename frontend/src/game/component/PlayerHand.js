@@ -2,7 +2,7 @@ import React from 'react';
 import {HiddenCard} from './HiddenCard';
 import {Hand} from "./Hand";
 
-export const OtherPlayerHand = ({ cardCount, orientation }) => {
+export const PlayerHand = ({ cards, orientation }) => {
     return <Hand cards={[...Array(cardCount)]} orientation={orientation}>
         {(card, props) => {
             return <HiddenCard {...props} />

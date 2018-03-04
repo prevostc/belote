@@ -1,0 +1,43 @@
+
+.hand {
+  height: 100%;
+  width: 100%;
+  display: grid;
+  justify-items: center;
+  align-items: center;
+}
+
+/* each card spans 3 blocks, there is 8 cards, the last card spans 2 more blocks -> 10 blocks */
+.hand {
+  grid-template-columns: repeat(10, 10%);
+  grid-template-rows: 100%;
+}
+.hand.hand--left,
+.hand.hand--right {
+  grid-template-columns: 100%;
+  grid-template-rows: repeat(10, 10%);
+}
+
+/* reverse one side to make it look better */
+.hand.hand--left {
+  transform: rotate(180deg);
+}
+
+
+.hand .hand__card {
+  /* default values, gets overwritten by js */
+  grid-column-start: 1;
+  grid-column-end: 1;
+  grid-row-start: 1;
+  grid-row-end: 1;
+}
+
+
+/* go bigger and shift */
+.hand .hand__card {
+  max-width: 170%;
+  height: 170%;
+}
+.hand .hand__card--top { transform: translate(0, -60%); }
+.hand .hand__card--left { transform: translate(100%, 0%) rotate(90deg); }
+.hand .hand__card--right { transform: translate(100%, 0%) rotate(90deg); }

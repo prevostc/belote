@@ -18,8 +18,8 @@
 
 .board__border {
   display: grid;
-  grid-template-columns: 20% 60% 20%;
-  grid-template-rows: 20% 40% 40%;
+  grid-template-columns: 10% 80% 10%;
+  grid-template-rows: 10% 70% 20%;
   grid-template-areas:
     "scores top-player contract"
     "left-player table-cards right-player"

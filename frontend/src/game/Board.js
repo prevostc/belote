@@ -41,13 +41,13 @@ export const Board = enhance(({ player, setPlayer, gameUuid, phase }) => {
                 <PlayerCards playerUuid={player.uuid} gameUuid={gameUuid} />
             </div>
             <div className="board__top-player">
-                <OtherPlayerHand vertical={false} cardCount={5} />
+                <OtherPlayerHand orientation="top" cardCount={5} />
             </div>
             <div className="board__left-player">
-                <OtherPlayerHand vertical={true} cardCount={5} />
+                <OtherPlayerHand orientation="left" cardCount={5} />
             </div>
             <div className="board__right-player">
-                <OtherPlayerHand vertical={true} cardCount={5} />
+                <OtherPlayerHand orientation="right" cardCount={5} />
             </div>
             <div className="board__debug">
                 <h2>Debug player switch</h2>
