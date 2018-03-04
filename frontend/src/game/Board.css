@@ -1,0 +1,34 @@
+
+.board {
+  background-color: #2D7551;
+  padding: 20px;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+}
+
+.board__border {
+  padding: 20px;
+  border-radius: 12px;
+  border: 5px solid #fdfdfd;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+}
+
+.board__border {
+  display: grid;
+  grid-template-columns: 20% auto 20%;
+  grid-template-rows: 20% 40% auto;
+  grid-template-areas:
+    "scores top-player contract"
+    "left-player table-cards right-player"
+    ". bottom-player .";
+}
+.board__scores { grid-area: scores; }
+.board__top-player { grid-area: top-player; }
+.board__contract { grid-area: contract; }
+.board__left-player { grid-area: left-player; }
+.board__table-cards { grid-area: table-cards; }
+.board__right-player { grid-area: right-player; }
+.board__bottom-player { grid-area: bottom-player; }

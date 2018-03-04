@@ -17,7 +17,7 @@ const enhance = compose(
 
 export default enhance(() => {
   return <Router>
-      <div>
+      <div id="app">
           <Route exact path="/" render={() => <Menu playerUuid={playerUuid} />} />
           <Route path="/game/:uuid" render={({ match }) => <Board playerUuid={playerUuid} gameUuid={match.params.uuid} /> } />
       </div>
