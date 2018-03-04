@@ -1,0 +1,86 @@
+.card {
+  background-color: #fff;
+  box-shadow: 0 0 5px rgba(0,0,0,0.5);
+  border-radius: 3%;
+  padding: 5%;
+}
+
+.card .card__layout {
+  padding: 5%;
+  box-sizing: border-box;
+  height: 100%;
+  display: grid;
+  justify-items: center;
+  align-items: center;
+  grid-column-gap: 5%;
+  grid-template-columns: 15% 60% 15%;
+  grid-template-rows: 10% 5% 15% 40% 15% 5% 10%;
+  grid-template-areas:
+          "lm . ."
+          "lm inner ."
+          "lc inner ."
+          ". inner ."
+          ". inner rc"
+          ". inner rm"
+          ". . rm";
+}
+.card .card__layout .card__layout__left-motif  { grid-area: lm; }
+.card .card__layout .card__layout__left-color  { grid-area: lc; }
+.card .card__layout .card__layout__inner { grid-area: inner; align-self: stretch; justify-self: stretch; }
+.card .card__layout .card__layout__right-motif  { grid-area: rm; }
+.card .card__layout .card__layout__right-color  { grid-area: rc; }
+
+.card .card__inner {
+  height: 100%;
+  width: 100%;
+  display: grid;
+  justify-items: stretch;
+  align-items: stretch;
+}
+.card .card__inner--1 {
+  grid-template-columns: 100%;
+  grid-template-rows: 100%;
+  grid-template-areas: "v1";
+}
+.card .card__inner--7 {
+  grid-template-columns: repeat(3, 33%);
+  grid-template-rows: repeat(5, 20%);
+  grid-template-areas:
+          "v1 . v2"
+          ". v3 ."
+          "v4 . v5"
+          ". . ."
+          "v6 . v7";
+}
+.card .card__inner--8 {
+  grid-template-columns: repeat(3, 33%);
+  grid-template-rows: repeat(5, 20%);
+  grid-template-areas:
+          "v1 . v2"
+          ". v3 ."
+          "v4 . v5"
+          ". v6 ."
+          "v7 . v8";
+}
+.card .card__inner--9 {
+  grid-template-columns: repeat(3, 33%);
+  grid-template-rows: repeat(5, 20%);
+  grid-template-areas:
+          "v1 . v2"
+          "v3 . v4"
+          ". v9 ."
+          "v5 . v6"
+          "v7 . v8";
+}
+.card .card__inner--10 {
+  grid-template-columns: repeat(3, 33%);
+  grid-template-rows: repeat(6, 16.6%);
+  grid-template-areas:
+          "v1 . v2"
+          ". v9 ."
+          "v3 . v4"
+          "v5 . v6"
+          ". v10 ."
+          "v7 . v8";
+}
+

@@ -14,3 +14,8 @@ html, body, #root, #app
   min-height: 100%;
   height: 100%;
 }
+
+#app {
+  /* we want the app to scale to the screen */
+  font-size: 2vw;
+}
