@@ -6,6 +6,7 @@ import Scores from './Scores';
 import Contract from './Contract';
 import DebugPlayerSwitch from './component/DebugPlayerSwitch';
 import {enhanceWithGame} from "../api";
+import { OtherPlayerHand } from './component/OtherPlayerHand';
 import "./Board.css";
 
 const testPlayer = { uuid: "1", name: "north" };
@@ -40,13 +41,13 @@ export const Board = enhance(({ player, setPlayer, gameUuid, phase }) => {
                 <PlayerCards playerUuid={player.uuid} gameUuid={gameUuid} />
             </div>
             <div className="board__top-player">
-                top player
+                <OtherPlayerHand vertical={false} cardCount={5} />
             </div>
             <div className="board__left-player">
-                left player
+                <OtherPlayerHand vertical={true} cardCount={5} />
             </div>
             <div className="board__right-player">
-                right player
+                <OtherPlayerHand vertical={true} cardCount={5} />
             </div>
             <div className="board__debug">
                 <h2>Debug player switch</h2>

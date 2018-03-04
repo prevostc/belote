@@ -18,14 +18,14 @@
 
 .board__border {
   display: grid;
-  grid-template-columns: 20% auto 20%;
-  grid-template-rows: 20% 40% auto;
+  grid-template-columns: 20% 60% 20%;
+  grid-template-rows: 20% 40% 40%;
   grid-template-areas:
     "scores top-player contract"
     "left-player table-cards right-player"
     ". bottom-player .";
 }
-.board__scores { grid-area: scores; }
+.board__scores { grid-area: scores;}
 .board__top-player { grid-area: top-player; }
 .board__contract { grid-area: contract; }
 .board__left-player { grid-area: left-player; }
