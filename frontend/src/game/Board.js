@@ -27,21 +27,6 @@ export const Board = enhance(({ player, setPlayer, gameUuid, phase }) => {
         <div className="board__border">
             <div className="board__table-cards">
                 <TableCards playerUuid={player.uuid} gameUuid={gameUuid} />
-                <div style={{width: '20%'}}>
-                    <Card color={"♣"} motif={"1"} />
-                </div>
-                <div style={{width: '20%'}}>
-                    <Card color={"♣"} motif={"7"} />
-                </div>
-                <div style={{width: '20%'}}>
-                    <Card color={"HEARTS"} motif={"8"} />
-                </div>
-                <div style={{width: '20%'}}>
-                    <Card color={"DIAMONDS"} motif={"9"} />
-                </div>
-                <div style={{width: '20%'}}>
-                    <Card color={"SPADES"} motif={"10"} />
-                </div>
             </div>
             <div className="board__contract">
                 <Contract playerUuid={player.uuid} gameUuid={gameUuid} />

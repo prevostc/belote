@@ -3,7 +3,7 @@
   height: 100%;
   width: 100%;
   display: grid;
-  justify-items: center;
+  justify-items: stretch;
   align-items: center;
 }
 
@@ -39,5 +39,6 @@
   height: 170%;
 }
 .hand .hand__card--top { transform: translate(0, -60%); }
+.hand .hand__card--bottom { transform: translate(0, 20%); font-size: 3vh; }
 .hand .hand__card--left { transform: translate(100%, 0%) rotate(90deg); }
 .hand .hand__card--right { transform: translate(100%, 0%) rotate(90deg); }

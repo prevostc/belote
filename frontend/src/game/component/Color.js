@@ -1,14 +1,11 @@
 import React from 'react';
-import {compose, pure} from "recompose";
+import {compose, pure, setPropTypes} from "recompose";
 import './Color.css';
 import Club from "./ColorClub.svg";
 import Diamond from "./ColorDiamond.svg";
 import Heart from "./ColorHeart.svg";
 import Spade from "./ColorSpade.svg";
-
-const enhance = compose(
-    pure
-);
+import PropTypes from "prop-types";
 
 const colorMap = {
     "SPADES": Spade,
@@ -20,6 +17,15 @@ const colorMap = {
     "♣": Club,
     "♦": Diamond,
 };
+
+export const validColors = Object.keys(colorMap);
+
+const enhance = compose(
+    setPropTypes({
+        color: PropTypes.oneOf(validColors).isRequired,
+    }),
+    pure
+);
 
 export const Color = enhance(({ color }) => {
     return (
