@@ -18,11 +18,6 @@
   grid-template-rows: repeat(10, 10%);
 }
 
-/* reverse one side to make it look better */
-.hand.hand--left {
-  transform: rotate(180deg);
-}
-
 
 .hand .hand__card {
   /* default values, gets overwritten by js */
@@ -38,7 +33,10 @@
   max-width: 170%;
   height: 170%;
 }
-.hand .hand__card--top { transform: translate(0, -60%); }
-.hand .hand__card--bottom { transform: translate(0, 20%); font-size: 3vh; }
-.hand .hand__card--left { transform: translate(100%, 0%) rotate(90deg); }
-.hand .hand__card--right { transform: translate(100%, 0%) rotate(90deg); }
+.hand--top { transform: translate(0, -60%); }
+.hand--bottom { transform: translate(0, 20%); font-size: 3vh; }
+.hand--left { transform: translate(-100%, 0%) rotate(180deg)/* reverse one side to make it look better */; }
+.hand--right { transform: translate(100%, 0%); }
+.hand .hand__card--left { transform: rotate(90deg); }
+.hand .hand__card--right { transform: rotate(90deg); }
+

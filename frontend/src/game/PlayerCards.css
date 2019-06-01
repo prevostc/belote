@@ -1,0 +1,9 @@
+
+
+.player-cards--playable {
+  transition: transform 0.3s ease-out;
+  transform: translate(0, -20%);
+}
+.player-cards--playable:hover {
+  transform: translate(0, -40%);
+}

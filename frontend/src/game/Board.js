@@ -6,7 +6,6 @@ import Scores from './Scores';
 import Contract from './Contract';
 import DebugPlayerSwitch from './component/DebugPlayerSwitch';
 import {enhanceWithGame} from "../api";
-import { Card } from './component/Card';
 import { OtherPlayerHand } from './component/OtherPlayerHand';
 import "./Board.css";
 

@@ -2,6 +2,8 @@ import React from 'react';
 import { compose, pure } from "recompose";
 import Card from './component/Card';
 import {enhanceWithGame} from "../api";
+import {AspectRatio} from "./component/AspectRatio";
+import "./TableCards.css";
 
 const enhance = compose(
     enhanceWithGame((game) => ({
@@ -12,14 +14,11 @@ const enhance = compose(
 
 export const TableCards = enhance(({ table }) => {
     return (
-      <div>
-          <h2>table</h2>
-          <ol>
-              {table.map(({color, motif}) => <li key={`${color}-${motif}`}>
-                  <Card color={color} motif={motif} />
-              </li>)}
-          </ol>
-      </div>
+      <AspectRatio ratio={1}>
+          <div className="table-cards">
+          {table.map(({color, motif}) => <Card className="table-cards__card" key={`${color}-${motif}`}color={color} motif={motif} />)}
+          </div>
+      </AspectRatio>
     );
 });
 

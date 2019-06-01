@@ -33,3 +33,7 @@
 .board__table-cards { grid-area: table-cards; }
 .board__right-player { grid-area: right-player; }
 .board__bottom-player { grid-area: bottom-player; }
+
+.board__table-cards {
+  font-size: 4vw;
+}
